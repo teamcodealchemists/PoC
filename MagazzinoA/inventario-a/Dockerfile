@@ -19,6 +19,6 @@ COPY --from=builder  /user/src/app/node_modules ./node_modules
 COPY --from=builder  /user/src/app/dist ./dist
 
 
-EXPOSE 8080
+EXPOSE 3002
 
 CMD ["node", "dist/main"]
