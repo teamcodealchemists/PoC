@@ -13,6 +13,6 @@ async function bootstrap() {
   });
 
   await app.startAllMicroservices();
-  await app.listen(process.env.PORT ?? 3000);
+  await app.listen(process.env.PORT ?? 3002); // Porta diversa da ordini
 }
 bootstrap();
