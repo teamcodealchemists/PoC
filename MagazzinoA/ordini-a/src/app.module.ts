@@ -13,10 +13,12 @@ import { AppService } from './app.service';
         transport: Transport.NATS,
         options: {
           servers: ['nats://nats:4222'],  
-      },
+        },  
+      },    
     ]),
   ],
   controllers: [AppController],
   providers: [AppService],
 })
 export class AppModule {}
+
