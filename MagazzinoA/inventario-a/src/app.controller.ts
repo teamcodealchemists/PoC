@@ -1,13 +1,11 @@
 import { Controller } from '@nestjs/common';
-import { MessagePattern } from '@nestjs/microservices';
-import { AppService } from './app.service';
+import { EventPattern, Payload } from '@nestjs/microservices';
 
 @Controller()
 export class AppController {
-  constructor(private readonly appService: AppService) {}
-
-  @MessagePattern('verifica_inventario')
-  handleVerificaInventario(data: { prodottoId: number; quantita: number }) {
-    return this.appService.verificaDisponibilita(data.prodottoId, data.quantita);
+  @EventPattern('ordine_creato')
+  handleOrdineCreato(@Payload() data: any) {
+    console.log('Inventario ha ricevuto ordine:', data);
+    // Logica: riduci stock, notifica, ecc.
   }
 }
