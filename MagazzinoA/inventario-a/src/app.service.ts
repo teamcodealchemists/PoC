@@ -2,7 +2,9 @@ import { Injectable } from '@nestjs/common';
 
 @Injectable()
 export class AppService {
-  getHello(): string {
-    return 'Hello World!';
+  verificaDisponibilita(prodottoId: number, quantita: number) {
+    // Logica fittizia
+    const disponibile = quantita <= 10;
+    return { disponibile };
   }
 }
