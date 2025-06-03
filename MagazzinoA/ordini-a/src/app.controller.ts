@@ -1,5 +1,6 @@
-import { Controller, Get, Body } from '@nestjs/common';
+import { Controller, Get, Body, Inject  } from '@nestjs/common';
 import { AppService } from './app.service';
+import { ClientProxy } from '@nestjs/microservices';
 
 @Controller()
 export class AppController {
@@ -15,7 +16,7 @@ export class AppController {
 
     // 📢 Pubblica evento su NATS
     this.client.emit('ordine_creato', ordine);
+    console.log(`Creato ordine di ${ordine.quantita} ${ordine.prodotto} (ID: ${ordine.id})`);
     return { message: 'Ordine inviato', ordine };
-    console.log("Creato ordine di "+ quantita + " "+prodotto+ "(ID:"+id+")"); 
   }
 }
