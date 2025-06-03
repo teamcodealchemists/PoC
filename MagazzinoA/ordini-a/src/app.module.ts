@@ -9,7 +9,7 @@ import { AppService } from './app.service';
   imports: [
     ClientsModule.register([
       {
-        name: 'ORDINE_SERVICE',           
+        name: 'INVENTARIO_SERVICE',           
         transport: Transport.NATS,
         options: {
           servers: ['nats://nats:4222'],  
