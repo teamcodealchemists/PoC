@@ -12,8 +12,9 @@ async function bootstrap() {
     },
   });
 
-  await app.listen();
-
+  await app.startAllMicroservices(); 
+  await app.listen(3000);   
+  
   console.log("AVVIATO CORRETTAMENTE MAIN INVENTARIO-A");
 }
 bootstrap();
