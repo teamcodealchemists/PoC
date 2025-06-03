@@ -10,7 +10,7 @@ import { AppController } from './app.controller';
         name: 'INVENTARIO_SERVICE',
         transport: Transport.NATS,
         options: {
-          servers: ['nats://localhost:4222'],
+          servers: ['nats://nats:4222'],
         },
       },
     ]),
