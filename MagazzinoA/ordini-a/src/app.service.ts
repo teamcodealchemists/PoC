@@ -7,7 +7,7 @@ export class AppService {
     @Inject('INVENTARIO_SERVICE') private readonly client: ClientProxy,
   ) {}
 
-     onModuleInit() {
+   async  onModuleInit() {
       console.log(' onModuleInit avviato');
   await this.client.connect(); 
     setInterval(() => {
