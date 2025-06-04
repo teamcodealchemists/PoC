@@ -24,9 +24,9 @@ export class AppController implements OnModuleInit {
     return { message: 'Ordine inviato', ordine };
   }
 
-   async inviaOrdineAutomatico() {
+    inviaOrdineAutomatico() {
     const ordine = { id: Date.now(), prodotto: 'banana', quantita: 1 };
-    await this.client.emit('ordine_creato', ordine);
+     this.client.emit('ordine_creato', ordine);
     console.log('📦 Evento ordine_creato inviato automaticamente', ordine);
   }
 
