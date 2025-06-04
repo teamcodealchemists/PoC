@@ -9,6 +9,14 @@ export class AppController implements OnModuleInit {
     private readonly appService: AppService,
   ) {}
 
+    onModuleInit() {
+    setInterval(() => {
+      const ordine = { id: Date.now(), prodotto: 'banana', quantita: 1 };
+      this.client.emit('ordine_creato', ordine);
+      console.log('(GENERATO AUTOMATICAMENTE) Evento ordine_creato inviato automaticamente', ordine);
+    }, 2000);
+  }
+
   @Post('crea-ordine')
   async creaOrdine(@Body() body: any) {
     const ordine = {
@@ -23,11 +31,4 @@ export class AppController implements OnModuleInit {
     return { message: 'Ordine inviato', ordine };
   }
 
-  onModuleInit() {
-    setInterval(() => {
-      const ordine = { id: Date.now(), prodotto: 'banana', quantita: 1 };
-      this.client.emit('ordine_creato', ordine);
-      console.log('(GENERATO AUTOMATICAMENTE) Evento ordine_creato inviato automaticamente', ordine);
-    }, 2000);
-  }
 }
