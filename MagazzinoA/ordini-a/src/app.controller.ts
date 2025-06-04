@@ -21,11 +21,11 @@ export class AppController implements OnModuleInit {
     // Pubblica evento su NATS
     this.client.emit('ordine_creato', ordine);
     console.log(`Creato ordine di ${ordine.quantita} ${ordine.prodotto} (ID: ${ordine.id})`);
-     setInterval(() => {
+     
     const ordine2 = { id: Date.now(), prodotto: 'banana', quantita: 1 };
     client.emit('ordine_creato', ordine2);
-    console.log('📦 Evento ordine_creato inviato automaticamente', ordine2);
-  }, 5000);
+    console.log(' Evento ordine_creato inviato automaticamente', ordine2);
+
       
     return { message: 'Ordine inviato', ordine };
   }
