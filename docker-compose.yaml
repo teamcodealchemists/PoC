@@ -1,0 +1,24 @@
+services:
+  inventario-a:
+    image : "swe/inventario-a"
+    ports:
+      - "8080:3000"
+    networks:
+      - net-magazzino
+  ordini-a:
+    image : "swe/ordini-a"
+    ports:
+      - "8081:3000"
+    networks:
+      - net-magazzino
+  nats-inventario:
+    image : nats:latest #Dobbiamo crearlo con questo nome esatto
+    ports:
+      - "8084:3000"
+    networks:
+      - net-magazzino
+
+networks:
+  net-magazzino:    
+    driver: bridge
+      
