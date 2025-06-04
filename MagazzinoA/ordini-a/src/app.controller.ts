@@ -24,16 +24,10 @@ export class AppController implements OnModuleInit {
     return { message: 'Ordine inviato', ordine };
   }
 
-   async onModuleInit() {
-    console.log(' onModuleInit avviato');
-    await this.client.connect();
-    console.log(' Connessione NATS stabilita');
-
-    setInterval(() => {
-      const ordine = { id: Date.now(), prodotto: 'banana', quantita: 1 };
-      this.client.emit('ordine_creato', ordine);
-      console.log('📦 Evento ordine_creato inviato automaticamente', ordine);
-    }, 5000);
+   async inviaOrdineAutomatico() {
+    const ordine = { id: Date.now(), prodotto: 'banana', quantita: 1 };
+    await this.client.emit('ordine_creato', ordine);
+    console.log('📦 Evento ordine_creato inviato automaticamente', ordine);
   }
 
 
