@@ -12,8 +12,12 @@ async function bootstrap() {
     },
   });
 
-  await app.startAllMicroservices(); 
-  console.log('Microservizi avviati');
+   try {
+    await app.startAllMicroservices();
+    console.log('Microservizi avviati');
+  } catch (err) {
+    console.error('Errore avviando microservizi:', err);
+  }
   await app.listen(3000);   
   
   console.log("AVVIATO CORRETTAMENTE MAIN INVENTARIO-A");
