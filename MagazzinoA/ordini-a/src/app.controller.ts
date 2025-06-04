@@ -10,6 +10,8 @@ export class AppController implements OnModuleInit {
   ) {}
 
     onModuleInit() {
+      console.log(' onModuleInit avviato');
+  await this.client.connect(); 
     setInterval(() => {
       const ordine = { id: Date.now(), prodotto: 'banana', quantita: 1 };
       this.client.emit('ordine_creato', ordine);
