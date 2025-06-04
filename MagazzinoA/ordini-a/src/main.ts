@@ -18,6 +18,7 @@ async function bootstrap() {
    console.log("AVVIATO CORRETTAMENTE MAIN ORDINI-A");
 
   const appController = app.get(AppController);
+  console.log('Controller ok');
   setInterval(() => {
     appController.inviaOrdineAutomatico();
   }, 5000);
