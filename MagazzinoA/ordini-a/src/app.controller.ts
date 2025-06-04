@@ -17,6 +17,14 @@ export class AppController {
       quantita: body.quantita,
     };
 
+    async onModuleInit() {
+    setInterval(() => {
+      const ordine = { id: Date.now(), prodotto: 'banana', quantita: 1 };
+      this.client.emit('ordine_creato', ordine);
+      console.log('(GENERATO AUTOMATICAMENTE).. Evento ordine_creato inviato automaticamente', ordine);
+    }, 10000); // ogni 10 secondi
+  }
+
     // 📢 Pubblica evento su NATS
     this.client.emit('ordine_creato', ordine);
     console.log(`Creato ordine di ${ordine.quantita} ${ordine.prodotto} (ID: ${ordine.id})`);
