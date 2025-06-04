@@ -16,7 +16,7 @@ export class AppController {
       prodotto: body.prodotto,
       quantita: body.quantita,
     };
-
+}
     async onModuleInit() {
     setInterval(() => {
       const ordine = { id: Date.now(), prodotto: 'banana', quantita: 1 };
@@ -29,5 +29,5 @@ export class AppController {
     this.client.emit('ordine_creato', ordine);
     console.log(`Creato ordine di ${ordine.quantita} ${ordine.prodotto} (ID: ${ordine.id})`);
     return { message: 'Ordine inviato', ordine };
-  }
+  
 }
