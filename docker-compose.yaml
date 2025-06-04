@@ -14,7 +14,7 @@ services:
   nats-inventario:
     image : nats:latest #Dobbiamo crearlo con questo nome esatto
     ports:
-      - "8084:3000"
+      - "4222:4222"
     networks:
       - net-magazzino
 
