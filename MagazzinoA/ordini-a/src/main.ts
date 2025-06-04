@@ -13,8 +13,8 @@ async function bootstrap() {
   });
 
   await app.startAllMicroservices();
+  console.log('Microservizi ordini avviati');
   await app.listen(process.env.PORT ?? 3001); // Porta diversa da inventario
-
    console.log("AVVIATO CORRETTAMENTE MAIN ORDINI-A");
 }
 bootstrap();
