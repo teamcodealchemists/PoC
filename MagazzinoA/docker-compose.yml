@@ -2,13 +2,12 @@ version: '3.8'
 
 services:
   nats:
-    image: nats
+    image: nats:latest
     ports:
       - "4222:4222"
 
   ordini:
-    build:
-      context: ./ordini-a
+    image: magazzinoa-ordini
     ports:
       - "3001:3001"
     environment:
@@ -18,7 +17,7 @@ services:
       - nats
 
   inventario:
-    build:
+    image: magazzinoa-inventario
       context: ./inventario-a
     ports:
       - "3002:3002"
