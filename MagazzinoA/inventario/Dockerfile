@@ -1,8 +1,15 @@
-ARG IMAGE=node:22-alpine
+FROM node:22-alpine AS builder
 
-#COMMON BASE IMAGE
-FROM $IMAGE AS builder
 WORKDIR /usr/src/app
-COPY . .
+
+COPY package*.json ./
+
 RUN npm install
+
+COPY . .
+
+RUN rm -rf ./src
+
 EXPOSE 3000
+
+CMD ["npm", "run", "start:dev"]

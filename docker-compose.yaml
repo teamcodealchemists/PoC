@@ -1,13 +1,17 @@
 services:
     inventario:
-      build: ./MagazzinoA/inventario
-      image: swe/inventario
+      build: 
+        context: ./MagazzinoA/inventario
+        dockerfile: Dockerfile
       ports:
         - "3000:3000"
       networks:
         - net-magazzino
+      environment:
+        - PORT=3000
+        - ID_MAGAZZINO=1
       volumes:
-        - config/magazzini/magazzino-a/inventario:/usr/src/app/config
+        - ./MagazzinoA/inventario/src:/usr/src/app/src
   #    depends_on:
   #      - nats-inventario
 
