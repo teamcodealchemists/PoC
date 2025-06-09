@@ -1,0 +1,43 @@
+services:
+    inventario:
+      build: 
+        context: ./microservizi/magazzino/inventario
+        dockerfile: Dockerfile
+      ports:
+        - "3000:3000"
+      networks:
+        - net-magazzino
+      environment:
+        - PORT=3000
+        - ID_MAGAZZINO=1
+      volumes:
+        - ./microservizi/magazzino/inventario/src:/usr/src/app/src
+  #    depends_on:
+  #      - nats-inventario
+
+  #--------------------------------------#
+
+  # inventario-a:
+  #   build: ./MagazzinoA/inventario-a
+  #   image: swe/inventario-a
+  #   ports:
+  #     - "8080:3000"
+  #   networks:
+  #     - net-magazzino
+  # ordini-a:
+  #   build: ./MagazzinoA/ordini-a
+  #   image: swe/ordini-a
+  #   ports:
+  #     - "8081:3000"
+  #   networks:
+  #     - net-magazzino
+  # nats-inventario:
+  #   image: nats:latest
+  #   ports:
+  #     - "4222:4222"
+  #   networks:
+  #     - net-magazzino
+
+networks:
+  net-magazzino:    
+    driver: bridge
