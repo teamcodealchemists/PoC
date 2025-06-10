@@ -5,8 +5,6 @@ import { ConfigModule } from '@nestjs/config';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 
-import { CategoriaSchema } from './schemas/categoria.schema';
-import { InventarioSchema } from './schemas/inventario.schema';
 
 import { Categoria, CategoriaSchema } from './schemas/categoria.schema';
 import { Inventario, InventarioSchema } from './schemas/inventario.schema';
