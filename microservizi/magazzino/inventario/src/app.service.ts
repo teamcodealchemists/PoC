@@ -16,11 +16,11 @@ export class AppService {
   //}
 
   async getQuantitaProdottiAlimentari(): Promise<number> {
-    const categoriaAlimentari = await this.categorieModel.findOne({ nome_categoria: 'Alimentari' }).exec();
+   /* const categoriaAlimentari = await this.categorieModel.findOne({ nome_categoria: 'Alimentari' }).exec();
     if (!categoriaAlimentari) {
       return 0;
-    }
-    const prodottiAlimentari = await this.inventarioModel.find({ id_categoria: categoriaAlimentari._id }).exec();
+    } */
+    const prodottiAlimentari = await this.inventarioModel.find({ id_categoria: 3 }).exec();
     return prodottiAlimentari.reduce((acc, prodotto) => acc + prodotto.quantita, 0);
   }
 }
