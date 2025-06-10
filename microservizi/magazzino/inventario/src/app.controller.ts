@@ -5,7 +5,7 @@ import { AppService } from './app.service';
 export class AppController {
   constructor(private readonly appService: AppService) {}
 
-  @Get()
+@Get('whoareyou')
   async getHello(): Promise<string> {
     const quantitaAlimentari = await this.appService.getQuantitaProdottiAlimentari();
     return `Ciao sono il magazzino 1 e ho ${quantitaAlimentari} prodotti di categoria Alimentari`;
