@@ -8,8 +8,6 @@ import { ConfigModule } from '@nestjs/config';
   imports: [
     ConfigModule.forRoot(),
     MongooseModule.forRoot(process.env.MONGO_URL || 'mongodb://mongo:27017/inventario', {
-      useNewUrlParser: true,
-      useUnifiedTopology: true,
     }),
     MongooseModule.forFeature([
       { name: 'categorie', schema: {} },
