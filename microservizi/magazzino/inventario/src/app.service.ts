@@ -11,9 +11,9 @@ export class AppService {
     @InjectModel('inventario') private readonly inventarioModel: Model<any>,
   ) {}
 
-  getIdMagazzino(): string {
-    return this.configService.get('ID_MAGAZZINO');
-  }
+  //getIdMagazzino(): string {
+   // return this.configService.get('ID_MAGAZZINO');
+  //}
 
   async getQuantitaProdottiAlimentari(): Promise<number> {
     const categoriaAlimentari = await this.categorieModel.findOne({ nome_categoria: 'Alimentari' }).exec();
