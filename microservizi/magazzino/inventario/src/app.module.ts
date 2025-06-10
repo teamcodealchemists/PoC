@@ -1,17 +1,13 @@
-import { Module } from '@nestjs/common';
-import { AppController } from './app.controller';
-import { AppService } from './app.service';
-import { MongooseModule } from '@nestjs/mongoose';
-import { ConfigModule } from '@nestjs/config';
+import { Categoria, CategoriaSchema } from './schemas/categoria.schema';
+import { Inventario, InventarioSchema } from './schemas/inventario.schema';
 
 @Module({
   imports: [
     ConfigModule.forRoot(),
-    MongooseModule.forRoot(process.env.MONGO_URL || 'mongodb://mongo:27017/inventario', {
-    }),
+    MongooseModule.forRoot(process.env.MONGO_URL || 'mongodb://mongo:27017/inventario'),
     MongooseModule.forFeature([
-      { name: 'categorie', schema: {} },
-      { name: 'inventario', schema: {} },
+      { name: 'categorie', schema: CategoriaSchema },
+      { name: 'inventario', schema: InventarioSchema },
     ]),
   ],
   controllers: [AppController],
