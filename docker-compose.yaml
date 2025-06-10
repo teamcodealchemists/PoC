@@ -55,6 +55,4 @@ networks:
   #   networks:
   #     - net-magazzino
 
-networks:
-  net-magazzino:    
-    driver: bridge
+
