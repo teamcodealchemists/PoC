@@ -24,7 +24,7 @@ services:
     networks:
       - net-magazzino
     volumes:
-      - ./mongo_db:/docker-entrypoint-initdb.d
+      - ./microservizi/magazzino/mongo_db:/docker-entrypoint-initdb.d
 
 networks:
   net-magazzino:    
