@@ -7,8 +7,8 @@ import { ConfigService } from '@nestjs/config';
 export class AppService {
   constructor(
     private readonly configService: ConfigService,
-    @InjectModel('categorie') private readonly categorieModel: Model<any>,
-    @InjectModel('inventario') private readonly inventarioModel: Model<any>,
+    @InjectModel(Categoria.name) private readonly categorieModel: Model<CategoriaDocument>,
+@InjectModel(Inventario.name) private readonly inventarioModel: Model<InventarioDocument
   ) {}
 
   //getIdMagazzino(): string {
