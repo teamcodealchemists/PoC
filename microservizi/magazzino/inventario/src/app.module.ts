@@ -14,9 +14,10 @@ import { Inventario, InventarioSchema } from './schemas/inventario.schema';
     ConfigModule.forRoot(),
     MongooseModule.forRoot(process.env.MONGO_URL || 'mongodb://mongo:27017/inventario'),
     MongooseModule.forFeature([
-      { name: 'categorie', schema: CategoriaSchema },
-      { name: 'inventario', schema: InventarioSchema },
-    ]),
+  { name: Categoria.name, schema: CategoriaSchema, collection: 'categorie' },
+  { name: Inventario.name, schema: InventarioSchema, collection: 'inventario' },
+])
+
   ],
   controllers: [AppController],
   providers: [AppService],
