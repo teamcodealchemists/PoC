@@ -7,7 +7,6 @@ import { AppService } from './application/app.service';
 
 import { InventarioMongo, InventarioSchema } from './infrastructure/schemas/inventario.schema';
 import { InventarioRepositoryMongo } from './infrastructure/adapters/mongodb/inventario.repository.impl';
-import { InventarioRepository } from './domain/ports/inventario.repository';
 
 @Module({
   imports: [
@@ -20,10 +19,7 @@ import { InventarioRepository } from './domain/ports/inventario.repository';
   controllers: [AppController],
   providers: [
     AppService,
-    {
-      provide: InventarioRepository,
-      useClass: InventarioRepositoryMongo,
-    },
+    { provide: 'InventarioRepository', useClass: InventarioRepositoryMongo },
   ],
 })
 export class AppModule {}
