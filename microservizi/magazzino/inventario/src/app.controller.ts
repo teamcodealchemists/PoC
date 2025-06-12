@@ -8,6 +8,6 @@ export class AppController {
 @Get('whoareyou')
   async getHello(): Promise<string> {
     const quantitaAlimentari = await this.appService.getQuantitaProdottiAlimentari();
-    return `Ciao sono il magazzino '1' ed ho ${quantitaAlimentari} prodotti di categoria Alimentari`;
+    return `Ciao sono il Magazzino '1' ed ho ${quantitaAlimentari} prodotti di categoria Alimentari`;
   }
 }
