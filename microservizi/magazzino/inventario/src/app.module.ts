@@ -6,7 +6,7 @@ import { AppController } from './interfaces/http/app.controller';
 import { AppService } from './application/app.service';
 
 import { InventarioMongo, InventarioSchema } from './infrastructure/schemas/inventario.schema';
-import { InventarioRepositoryMongo } from './infrastructure/adapters/mongodb/inventario.repository.impl';
+import { InventarioRepositoryMongo } from './infrastructure/adapters/mongo_db/inventario.repository.impl';
 
 @Module({
   imports: [
