@@ -4,6 +4,9 @@ import { InventarioRepository } from '../../../domain/ports/inventario.repositor
 import { Inventario } from '../../../domain/models/inventario.model';
 import { InventarioDocument, InventarioMongo } from '../../schemas/inventario.schema';
 import { Injectable } from '@nestjs/common';
+import { CreaProdottoDto } from '../../../interfaces/http/dto/crea-prodotto.dto';
+
+
 
 @Injectable()
 export class InventarioRepositoryMongo implements InventarioRepository {
@@ -16,10 +19,20 @@ export class InventarioRepositoryMongo implements InventarioRepository {
     return docs.map(doc => this.toDomain(doc));
   }
 
-  async findByCodiceBarre(codice: string): Promise<Inventario | null> {
-    const doc = await this.inventarioModel.findOne({ codice_barre: codice }).exec();
-    return doc ? this.toDomain(doc) : null;
-  }
+  
+    async findByCodiceBarre(codice: string): Promise<Inventario | null> {
+  const result = await this.inventarioModel.findOne({ codice_barre: codice }).exec();
+  if (!result) return null;
+  return {
+  codice_barre: result.codice_barre,
+  nome_prodotto: result.nome_prodotto,
+  prezzo_unitario: result.prezzo_unitario,
+  quantita: result.quantita,
+  quantita_minima: result.quantita_minima,
+  quantita_massima: result.quantita_massima,
+  };
+}
+  
 
   async getQuantitaTotale(): Promise<number> {
     const docs = await this.inventarioModel.find().exec();
@@ -36,4 +49,24 @@ export class InventarioRepositoryMongo implements InventarioRepository {
       doc.quantita_massima,
     );
   }
+
+ 
+
+  async aggiungiProdotto(prodotto: CreaProdottoDto): Promise<InventarioMongo> {
+  const nuovo = new this.inventarioModel(prodotto);
+  return nuovo.save();
+}
+
+async removeByCodiceBarre(codice: string): Promise<boolean> {
+  const result = await this.inventarioModel.deleteOne({ codice_barre: codice });
+  return result.deletedCount > 0;
+}
+
+async aggiornaQuantita(codice: string, nuovaQuantita: number): Promise<InventarioMongo | null> {
+  return this.inventarioModel.findOneAndUpdate(
+    { codice_barre: codice },
+    { quantita: nuovaQuantita },
+    { new: true } // restituisce il documento aggiornato
+  ).exec();
+}
 }

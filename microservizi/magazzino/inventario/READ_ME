@@ -1,0 +1,36 @@
+Funzioni testate e come testarle: 
+
+1.VERIFICA SE MAGAZZINO E' ATTIVO.
+    Inviare richiesta : (GET) http://localhost:3000/whoareyou
+    --> funzione getInfo()
+
+2.RICERCA PER CODICE A BARRE 
+    Inviare richiesta: (GET) http://localhost:3000/prodotto/codice_barre
+    --> funzione trovaProdotto(string)
+
+3.MOSTRARE TUTTO L'INVENTARIO
+    Inviare richiesta: (GET) http://localhost:3000/inventario
+    --> funzione getInventario()
+
+4.AGGIUNGERE PRODOTTO 
+    Inviare richiesta : (POST) http://localhost:3000/aggiungi_prodotto
+                        Inserendo l'headers : Content-Type: application/json
+                        Inserendo nel body (per esempio):{
+                                                            "codice_barre": "123456",
+                                                            "nome_prodotto": "Prodotto Test 2",
+                                                            "prezzo_unitario": 10.5,
+                                                            "quantita": 100
+                                                                }
+    --> funzione aggiungiProdotto(Prodotto)
+
+5.RIMUOVERE PRODOTTO TRAMITE CODICE A BARRE
+    Inviare richiesta: (DELETE) http://localhost:3000/rimuovi_prodotto/codice_barre
+    --> funzione rimuoviProdotto(String)
+
+6.MODIFICARE QUANTITA PRODOTTO TRAMITE CODICE A BARRE
+    Inviare richiesta: (PATCH) http://localhost:3000/modifica_quantita/codice_barre
+                        Inserendo l'headers : Content-Type: application/json
+                        Inserendo nel body (per esempio):{
+                                                            "quantita": 100
+                                                                }
+    --> funzione aggiornaQuantita()
