@@ -63,10 +63,44 @@ async removeByCodiceBarre(codice: string): Promise<boolean> {
 }
 
 async aggiornaQuantita(codice: string, nuovaQuantita: number): Promise<InventarioMongo | null> {
+  const prodotto = await this.inventarioModel.findOne({ codice_barre: codice });
+
+  if (!prodotto) {
+    return null;
+  }
+
+  if (prodotto.quantita_massima !== undefined && nuovaQuantita > prodotto.quantita_massima) {
+    throw new Error(
+      `La nuova quantità (${nuovaQuantita}) supera la quantità massima (${prodotto.quantita_massima})`
+    );
+  }
+
+   if (prodotto.quantita_massima !== undefined && nuovaQuantita < prodotto.quantita_minima) {
+    throw new Error(
+      `La nuova quantità (${nuovaQuantita}) è inferiore della quantità minima (${prodotto.quantita_minima})`
+    );
+  }
+
+ 
   return this.inventarioModel.findOneAndUpdate(
     { codice_barre: codice },
     { quantita: nuovaQuantita },
-    { new: true } // restituisce il documento aggiornato
-  ).exec();
+    { new: true }
+  );
 }
+
+ async findProdottiARischio(): Promise<Inventario[]> {
+  return this.inventarioModel.find({
+    quantita_minima: { $exists: true },
+    $expr: {
+      $lte: [
+        '$quantita',
+        { $multiply: ['$quantita_minima', 1.2] }
+      ]
+    }
+  })
+  .lean() 
+  .exec();
+}
+
 }

@@ -7,4 +7,5 @@ export interface InventarioRepository {
   aggiungiProdotto(prodotto: Inventario): Promise<Inventario>;
   removeByCodiceBarre(codice: string): Promise<boolean>;
   aggiornaQuantita(codice: string, nuovaQuantita: number): Promise<Inventario | null>;
+  findProdottiARischio(): Promise<Inventario[]>;
 }

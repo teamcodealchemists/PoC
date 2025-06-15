@@ -47,4 +47,8 @@ aggiornaQuantita(
   return this.appService.aggiornaQuantita(codice, body.quantita);
 }
 
+ @Get('a_rischio')
+  async getProdottiARischio() {
+    return this.appService.getProdottiARischio();
+  }
 }

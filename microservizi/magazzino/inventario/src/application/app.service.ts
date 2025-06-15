@@ -36,5 +36,9 @@ async aggiornaQuantita(codice: string, nuovaQuantita: number) {
   return this.inventarioRepo.aggiornaQuantita(codice, nuovaQuantita);
 }
 
+async getProdottiARischio() {
+    return this.inventarioRepo.findProdottiARischio();
+  }
+
 }
 
