@@ -10,7 +10,7 @@ services:
     environment:
       - PORT=3000
       - ID_MAGAZZINO=1
-      - MONGO_URL=mongodb://mongo:27017/inventario
+      - MONGO_URL=mongodb://mongo:27017/inventory
     volumes:
       - ./microservizi/magazzino/inventario/src:/usr/src/app/src
     depends_on:

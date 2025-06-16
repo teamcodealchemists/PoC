@@ -1,37 +1,37 @@
-db = db.getSiblingDB('inventario');
+db = db.getSiblingDB('inventory');
 
-// Inserimento diretto nella collezione `inventario`
-db.inventario.insertMany([
+// Inserimento diretto nella collezione `inventory`
+db.inventory.insertMany([
   {
-    codice_barre: "10",
-    nome_prodotto: "Mouse",
-    prezzo_unitario: 15.99,
-    quantita: 50,
-    quantita_minima: 10,
-    quantita_massima: 100
+    id: 10,
+    name: "Mouse",
+    unitPrice: 15.99,
+    quantity: 50,
+    minQuantity: 10,
+    maxQuantity: 100
   },
   {
-    codice_barre: "20",
-    nome_prodotto: "Penna",
-    prezzo_unitario: 0.99,
-    quantita: 200,
-    quantita_minima: 50,
-    quantita_massima: 500
+    id: 20,
+    name: "Penna",
+    unitPrice: 0.99,
+    quantity: 200,
+    minQuantity: 50,
+    maxQuantity: 500
   },
   {
-    codice_barre: "30",
-    nome_prodotto: "Biscotti",
-    prezzo_unitario: 2.50,
-    quantita: 80,
-    quantita_minima: 20,
-    quantita_massima: 200
+    id: 30,
+    name: "Biscotti",
+    unitPrice: 2.50,
+    quantity: 80,
+    minQuantity: 20,
+    maxQuantity: 200
   },
   {
-    codice_barre: "40",
-    nome_prodotto: "Caramelle",
-    prezzo_unitario: 2.99,
-    quantita: 80,
-    quantita_minima: 20,
-    quantita_massima: 200
+    id: 40,
+    name: "Caramelle",
+    unitPrice: 2.99,
+    quantity: 80,
+    minQuantity: 20,
+    maxQuantity: 200
   }
 ]);

@@ -1,6 +1,6 @@
 import { Product } from './product';
 
-export class ConcreteProduct implements Product {
+export class ConcreteProduct extends Product {
   constructor(
     private id: number,
     private name: string,
@@ -8,7 +8,9 @@ export class ConcreteProduct implements Product {
     private quantity: number,
     private minQuantity: number,
     private maxQuantity: number
-  ) {}
+  ) {
+    super(id,name, unitPrice, quantity, minQuantity, maxQuantity);
+  }
 
   addQuantity(quantity: number): void {
     if (this.quantity + quantity > this.maxQuantity) throw new Error('Exceeds maximum limit');

@@ -1,58 +1,53 @@
-import { Controller, Get, Param, Post, Body, Delete, Patch} from '@nestjs/common';
-import { AppService } from '../../application/app.service';
-import { CreaProdottoDto } from './dto/crea-prodotto.dto';
-import { AggiornaQuantitaDto } from './dto/aggiorna-quantita.dto'
+import { Controller, Get, Param, Post, Body, Delete, Patch } from '@nestjs/common';
+import { InventoryHandlerService } from 'src/application/inventoryHandler.service';
+
+import { AddProductDto } from './dto/addProduct.dto';
+import { IdDto } from './dto/id.dto';
+import { EditProductDto } from './dto/editProduct.dto';
 
 @Controller()
 export class AppController {
-  constructor(private readonly appService: AppService) {}
+  constructor(private readonly InventoryHandlerService: InventoryHandlerService) { }
 
-   @Get()
-  getHello(): string {
-    return 'Hello World!';
-  }
+  // Informazioni di Diagnostica Magazzino 
   @Get('whoareyou')
   async getInfo(): Promise<string> {
-    const quantitaTotale = await this.appService.getQuantitaTotale();
+    const quantitaTotale = await this.InventoryHandlerService.getTotal();
     return `Ciao sono il magazzino '1' ed ho ${quantitaTotale} prodotti`;
   }
 
-
-@Get('prodotto/:codice')
-trovaProdotto(@Param('codice') codice: string) {
-  return this.appService.trovaProdotto(codice);
-}
-
- @Post('aggiungi_prodotto')
-  async aggiungiProdotto(@Body() nuovoProdotto: CreaProdottoDto) {
-    return this.appService.aggiungiProdotto(nuovoProdotto);
+  @Get('product/:id')
+  findProductById(@Param('id') id: string) {
+    let idVer= new IdDto();
+    idVer.id = parseInt(id, 10);
+    return this.InventoryHandlerService.findProductById(idVer);
   }
 
-  @Get('inventario')
-getInventario() {
-  return this.appService.getInventarioCompleto();
-}
-
-@Delete('rimuovi_prodotto/:codice')
-async rimuoviProdotto(@Param('codice') codice: string) {
-  const risultato = await this.appService.rimuoviProdotto(codice);
-  if (risultato) {
-    return { message: 'Prodotto rimosso con successo' };
-  } else {
-    return { message: 'Prodotto non trovato' };
+  @Post('addProduct')
+  async addProduct(@Body() newProduct: AddProductDto) {
+    return this.InventoryHandlerService.addProduct(newProduct);
   }
-}
 
-@Patch('modifica_quantita/:codice')
-aggiornaQuantita(
-  @Param('codice') codice: string,
-  @Body() body: AggiornaQuantitaDto,
-) {
-  return this.appService.aggiornaQuantita(codice, body.quantita);
-}
-
- @Get('a_rischio')
-  async getProdottiARischio() {
-    return this.appService.getProdottiARischio();
+  @Get('inventory')
+  getInventory() {
+    return this.InventoryHandlerService.getInventory();
   }
+
+  @Delete('removeProduct/:id')
+  async removeProduct(@Param('id') id: string) {
+    let idVer= new IdDto();
+    idVer.id = parseInt(id, 10);
+    return this.InventoryHandlerService.removeProduct(idVer);
+  }
+
+  @Patch('editProduct/:id')
+  editProduct(
+    @Param('id') id: string,
+    @Body() body: EditProductDto
+  ) {
+    let idVer= new IdDto();
+    idVer.id = parseInt(id, 10);
+    return this.InventoryHandlerService.editProduct(idVer, body);
+  }
+
 }
