@@ -1,6 +1,6 @@
 import { Controller, Get, Post, Body} from '@nestjs/common';
 import { AppService } from './app.service';
-import { InventoryHandlerCommand } from './application/useCases/inventoryHandler.command';
+import { InventoryHandlerCommand } from './application/inventoryHandler.command';
 import { AddProductDto } from './interface/dto/addProduct.dto';
 
 @Controller()
