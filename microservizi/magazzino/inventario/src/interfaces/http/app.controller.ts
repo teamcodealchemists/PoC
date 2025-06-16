@@ -7,6 +7,10 @@ import { AggiornaQuantitaDto } from './dto/aggiorna-quantita.dto'
 export class AppController {
   constructor(private readonly appService: AppService) {}
 
+   @Get()
+  getHello(): string {
+    return 'Hello World!';
+  }
   @Get('whoareyou')
   async getInfo(): Promise<string> {
     const quantitaTotale = await this.appService.getQuantitaTotale();
