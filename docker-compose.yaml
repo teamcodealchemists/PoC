@@ -38,7 +38,7 @@ services:
     environment:
       - PORT=3010
       - ID_MAGAZZINO=1
-      - MONGO_URL=mongodb://mongo:27018/inventario
+      - MONGO_URL=mongodb://mongo-aggregatore:27017/inventario
     volumes:
       - ./microservizi/magazzino/inventario/src:/usr/src/app/src
     depends_on:
@@ -48,7 +48,7 @@ services:
     image: mongo:latest
     container_name: mongo-aggregatore
     ports:
-      - "27018:27018"
+      - "27018:27017"
     networks:
       - net-magazzino
     volumes:

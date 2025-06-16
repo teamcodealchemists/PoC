@@ -1,6 +1,8 @@
 import { Module } from '@nestjs/common';
 import { MongooseModule } from '@nestjs/mongoose';
 import { ConfigModule } from '@nestjs/config';
+import { NatsJetStreamTransport } from '@nestjs-plugins/nestjs-nats-jetstream-transport';
+
 
 import { AppController } from './interfaces/http/app.controller';
 import { AppService } from './application/app.service';
@@ -21,5 +23,18 @@ import { InventarioRepositoryMongo } from './infrastructure/adapters/mongo_db/in
     AppService,
     { provide: 'InventarioRepository', useClass: InventarioRepositoryMongo },
   ],
+})
+
+@Module({
+  imports: [
+    NatsJetStreamTransport.register({
+      connectionOptions: {
+        servers: 'localhost:3000',
+        name: 'inventario-publisher',
+      },
+    }),
+  ],
+  controllers: [AppController],
+  providers: [AppService],
 })
 export class AppModule {}
