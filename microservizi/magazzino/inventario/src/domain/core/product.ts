@@ -1,13 +1,10 @@
-export interface Product {
-    addQuantity(qta: number): void;
-    removeQuantity(qta: number): void;
-    editMinQuantity(qtaMin: number): void;
-    editMaxQuantity(qtaMax: number): void;
-    
-    getId(): string;
-    getName(): string;
-    getUnitPrice(): number;
-    getQuantity(): number;
-    getMinQuantity(): number;
-    getMaxQuantity(): number;
-    }
+export class Product {
+    constructor(
+        id: number,
+        name: string,
+        unitPrice: number,
+        quantity: number,
+        minQuantity: number,
+        maxQuantity: number
+    ) { }
+}

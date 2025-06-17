@@ -1,17 +1,34 @@
 services:
-    inventario:
-      build: 
-        context: ./microservizi/magazzino/inventario
-        dockerfile: Dockerfile
-      ports:
-        - "3000:3000"
-      networks:
-        - net-magazzino
-      environment:
-        - PORT=3000
-        - ID_MAGAZZINO=1
-      volumes:
-        - ./microservizi/magazzino/inventario/src:/usr/src/app/src
+  inventario:
+    build: 
+      context: ./microservizi/magazzino/inventario
+      dockerfile: Dockerfile
+    ports:
+      - "3000:3000"
+    networks:
+      - net-magazzino
+    environment:
+      - PORT=3000
+      - ID_MAGAZZINO=1
+      - MONGO_URL=mongodb://mongo:27017/inventory
+    volumes:
+      - ./microservizi/magazzino/inventario/src:/usr/src/app/src
+    depends_on:
+      - mongo
+
+  mongo:
+    image: mongo:latest
+    container_name: mongo
+    ports:
+      - "27017:27017"
+    networks:
+      - net-magazzino
+    volumes:
+      - ./microservizi/magazzino/mongo_db:/docker-entrypoint-initdb.d
+
+networks:
+  net-magazzino:    
+    driver: bridge
   #    depends_on:
   #      - nats-inventario
 
@@ -38,6 +55,4 @@ services:
   #   networks:
   #     - net-magazzino
 
-networks:
-  net-magazzino:    
-    driver: bridge
+

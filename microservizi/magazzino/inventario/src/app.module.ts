@@ -1,11 +1,25 @@
-import { InventoryHandlerCommand } from './application/inventoryHandler.command';
+import { InventoryHandlerService } from './application/inventoryHandler.service';
 import { Module } from '@nestjs/common';
-import { AppController } from './app.controller';
-import { AppService } from './app.service';
+import { MongooseModule } from '@nestjs/mongoose';
+import { ConfigModule } from '@nestjs/config';
+
+import { AppController } from './interfaces/http/app.controller';
+
+import { InventoryMongo, InventorySchema } from './infrastructure/schemas/inventory.schema';
+import { InventoryRepositoryMongo } from './infrastructure/adapters/mongo_db/inventory.repository.impl';
 
 @Module({
-  imports: [],
+  imports: [
+    ConfigModule.forRoot(),
+    MongooseModule.forRoot(process.env.MONGO_URL || 'mongodb://mongo:27017/inventory'),
+    MongooseModule.forFeature([
+      { name: InventoryMongo.name, schema: InventorySchema },
+    ]),
+  ],
   controllers: [AppController],
-  providers: [AppService, InventoryHandlerCommand],
+  providers: [
+    InventoryHandlerService,
+    { provide: 'InventoryRepository', useClass: InventoryRepositoryMongo }
+    ]
 })
 export class AppModule {}
