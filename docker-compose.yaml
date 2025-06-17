@@ -1,4 +1,14 @@
 services:
+  nats:
+    image: nats:latest
+    container_name: nats-main
+    ports:
+      - "4222:4222"
+      - "6222:6222"
+      - "8222:8222"
+    command: ["-js", "-m", "8222"]
+
+
   inventario:
     build: 
       context: ./microservizi/magazzino/inventario
@@ -14,17 +24,44 @@ services:
     volumes:
       - ./microservizi/magazzino/inventario/src:/usr/src/app/src
     depends_on:
-      - mongo
+      - db-inventario
 
-  mongo:
+  db-inventario:
     image: mongo:latest
-    container_name: mongo
+    container_name: db-inventario
     ports:
       - "27017:27017"
     networks:
       - net-magazzino
     volumes:
       - ./microservizi/magazzino/mongo_db:/docker-entrypoint-initdb.d
+
+  aggregazione-inventario:
+    build: 
+      context: ./microservizi/aggregazione/inventario
+      dockerfile: Dockerfile
+    ports:
+      - "3010:3000"
+    networks:
+      - net-aggregazione
+    environment:
+      - PORT=3000
+      - ID_MAGAZZINO=1
+      - MONGO_URL=mongodb://mongo:27017/inventory
+    volumes:
+      - ./microservizi/aggregazione/inventario/src:/usr/src/app/src
+    depends_on:
+      - db-aggregazione-inventario
+
+  db-aggregazione-inventario:
+    image: mongo:latest
+    container_name: db-aggregazione-inventario
+    ports:
+      - "27018:27017"
+    networks:
+      - net-aggregazione
+    volumes:
+      - ./microservizi/aggregazione/mongo_db:/docker-entrypoint-initdb.d
 
 networks:
   net-magazzino:    
@@ -54,5 +91,8 @@ networks:
   #     - "4222:4222"
   #   networks:
   #     - net-magazzino
+
+  net-aggregazione:    
+    driver: bridge
 
 

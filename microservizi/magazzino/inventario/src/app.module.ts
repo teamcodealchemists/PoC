@@ -8,6 +8,8 @@ import { AppController } from './interfaces/http/app.controller';
 import { InventoryMongo, InventorySchema } from './infrastructure/schemas/inventory.schema';
 import { InventoryRepositoryMongo } from './infrastructure/adapters/mongo_db/inventory.repository.impl';
 
+import { NatsJetStreamTransport } from '@nestjs-plugins/nestjs-nats-jetstream-transport';
+
 @Module({
   imports: [
     ConfigModule.forRoot(),
@@ -21,5 +23,18 @@ import { InventoryRepositoryMongo } from './infrastructure/adapters/mongo_db/inv
     InventoryHandlerService,
     { provide: 'InventoryRepository', useClass: InventoryRepositoryMongo }
     ]
+})
+
+@Module({
+  imports: [
+    NatsJetStreamTransport.register({
+      connectionOptions: {
+        servers: 'localhost:4222',
+        name: 'wh-inventory-publisher',
+      },
+    }),
+  ],
+  controllers: [AppController],
+  providers: [InventoryHandlerService],
 })
 export class AppModule {}

@@ -1,18 +1,44 @@
-import { Injectable, Inject } from '@nestjs/common';
+//import { Injectable, Inject } from '@nestjs/common';
 import { ConcreteProduct } from "src/domain/core/concreteProduct";
 import { AddProductDto } from "src/interfaces/http/dto/addProduct.dto";
 import { IdDto } from "src/interfaces/http/dto/id.dto";
 import { EditProductDto } from "src/interfaces/http/dto/editProduct.dto";
 import { InventoryRepository } from "src/domain/ports/inventory.repository";
 
+import { Injectable, Inject, OnModuleInit, OnModuleDestroy } from '@nestjs/common';
+
+import { NatsJetStreamClientProxy } from '@nestjs-plugins/nestjs-nats-jetstream-transport';
+
+import { connect, JSONCodec, JetStreamClient, NatsConnection } from 'nats';
+
+interface newProductEvent {
+  id: number;
+  product: string;
+  quantity: number;
+}
 
 @Injectable()
-export class InventoryHandlerService {
-  constructor(
+export class InventoryHandlerService { /*implements OnModuleInit, OnModuleDestroy {
+  private nc: NatsConnection;
+  private js: JetStreamClient;
+  private codec = JSONCodec();
+*/
+    constructor(
     @Inject('InventoryRepository')
-    private readonly inventoryRepository: InventoryRepository
+    private readonly inventoryRepository: InventoryRepository,
+    @Inject('NATS_CLIENT')
+    private readonly client: NatsJetStreamClientProxy,
   ) {}
+/*
+  async onModuleInit() {
+    this.nc = await connect({ servers: 'nats://nats:4222' });
+    this.js = this.nc.jetstream();
+  }
 
+  async onModuleDestroy() {
+    await this.nc.close();
+  }
+*/
   async addProduct(dto: AddProductDto): Promise<void> {
     const product = await this.inventoryRepository.findById(dto.id);
 
@@ -77,4 +103,18 @@ export class InventoryHandlerService {
   }
 
 
+
+  async publishEvent<T>(subject: string, data: T) {
+    this.client.emit(subject, 'prova'/*this.codec.encode(data)*/);
+    return subject;
+  }
+  
+  async aggiungiProdotto(nuovoProdotto: AddProductDto) {
+    // Pubblicazione evento prima dell'effettiva aggiunta
+    await this.publishEvent<newProductEvent>('prodotto.inserito', {
+      id: nuovoProdotto.id,
+      product: nuovoProdotto.name,
+      quantity: nuovoProdotto.quantity,
+    });
+  }
 }
