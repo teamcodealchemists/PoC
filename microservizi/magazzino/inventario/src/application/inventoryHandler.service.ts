@@ -29,12 +29,16 @@ export class InventoryHandlerService {
       dto.maxQuantity !== undefined || null || "" ? dto.maxQuantity : 0
     );
 
-    console.log('New product created:', newProduct);
-
     await this.inventoryRepository.addProduct(newProduct);
   }
 
   async findProductById(id: IdDto): Promise<ConcreteProduct | null> {
+    const product = await this.inventoryRepository.findById(id.id);
+
+    if (!product) {
+      throw new Error(`Product with id ${id.id} not found`);
+    }
+
     return this.inventoryRepository.findById(id.id);
   }
 

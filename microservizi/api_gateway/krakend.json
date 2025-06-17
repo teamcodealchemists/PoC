@@ -1,0 +1,79 @@
+{
+  "$schema": "https://www.krakend.io/schema/krakend.json",
+  "version": 3,
+  "name": "api-gateway",
+  "timeout": "3000ms",
+  "cache_ttl": "300s",
+  "output_encoding": "json",
+  "endpoints": [
+    {
+      "endpoint": "/m1/whoareyou",
+      "method": "GET",
+      "output_encoding": "no-op",
+      "backend": [
+        {
+          "url_pattern": "/whoareyou",
+          "encoding": "no-op",
+          "sd": "static",
+          "method": "GET",
+          "disable_host_sanitize": false,
+          "host": [
+            "http://inventario:3000"
+          ]
+        }
+      ]
+    },
+    {
+      "endpoint": "/m1/inventory",
+      "method": "GET",
+      "output_encoding": "no-op",
+      "backend": [
+        {
+          "url_pattern": "/inventory",
+          "encoding": "no-op",
+          "sd": "static",
+          "method": "GET",
+          "host": [
+            "http://inventario:3000"
+          ],
+          "disable_host_sanitize": false
+        }
+      ]
+    },
+    {
+      "endpoint": "/m1/product/{id}",
+      "method": "GET",
+      "output_encoding": "no-op",
+      "backend": [
+        {
+          "url_pattern": "/product/{id}",
+          "encoding": "no-op",
+          "sd": "static",
+          "method": "GET",
+          "host": [
+            "http://inventario:3000"
+          ],
+          "disable_host_sanitize": false
+        }
+      ]
+    },
+    {
+      "endpoint": "/m1/addProduct",
+      "method": "POST",
+      "output_encoding": "no-op",
+      "backend": [
+        {
+          "url_pattern": "/addProduct",
+          "encoding": "no-op",
+          "sd": "static",
+          "method": "POST",
+          "host": [
+            "http://inventario:3000"
+          ],
+          "disable_host_sanitize": false
+        }
+      ]
+    }    
+
+  ]
+}

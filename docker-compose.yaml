@@ -9,7 +9,7 @@ services:
       - net-magazzino
     environment:
       - PORT=3000
-      - ID_MAGAZZINO=1
+      - WAREHOUSE_ID=1
       - MONGO_URL=mongodb://mongo:27017/inventory
     volumes:
       - ./microservizi/magazzino/inventario/src:/usr/src/app/src
@@ -26,11 +26,30 @@ services:
     volumes:
       - ./microservizi/magazzino/mongo_db:/docker-entrypoint-initdb.d
 
+  nats:
+     image: nats:latest
+     ports:
+       - "4222:4222"
+     networks:
+       - net-magazzino
+
+  api-gateway:
+    image: devopsfaith/krakend
+    container_name: api-gateway
+    ports:
+      - "8080:8080" # Gateway API
+    networks:
+      - net-magazzino
+    depends_on:
+      - inventario
+      - nats
+    volumes:
+      - ./microservizi/api_gateway/krakend.json:/etc/krakend/krakend.json
+    command: ["run", "-d", "-c", "/etc/krakend/krakend.json"]
+
 networks:
   net-magazzino:    
     driver: bridge
-  #    depends_on:
-  #      - nats-inventario
 
   #--------------------------------------#
 
@@ -46,12 +65,6 @@ networks:
   #   image: swe/ordini-a
   #   ports:
   #     - "8081:3000"
-  #   networks:
-  #     - net-magazzino
-  # nats-inventario:
-  #   image: nats:latest
-  #   ports:
-  #     - "4222:4222"
   #   networks:
   #     - net-magazzino
 
