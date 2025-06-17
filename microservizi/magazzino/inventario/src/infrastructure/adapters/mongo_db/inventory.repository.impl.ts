@@ -20,7 +20,9 @@ export class InventoryRepositoryMongo implements InventoryRepository {
 
   async findById(id: number): Promise<ConcreteProduct | null> {
     const result = await this.inventoryModel.findOne({ id: id }).exec();
-    if (!result) return null;
+    if (!result) {
+      throw new Error(`Product with id ${id} not found`);
+    }
     return (new ConcreteProduct(
       result.id,
       result.name,

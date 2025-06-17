@@ -1,4 +1,4 @@
-import { Controller, Get, Param, Post, Body, Delete, Patch } from '@nestjs/common';
+import { Controller, Get, Param, Post, Body, Delete, Patch, HttpException, HttpStatus } from '@nestjs/common';
 import { InventoryHandlerService } from 'src/application/inventoryHandler.service';
 
 import { AddProductDto } from './dto/addProduct.dto';
@@ -17,37 +17,48 @@ export class AppController {
   }
 
   @Get('product/:id')
-  findProductById(@Param('id') id: string) {
+  async findProductById(@Param('id') id: string) {
+    try {
     let idVer= new IdDto();
     idVer.id = parseInt(id, 10);
-    return this.InventoryHandlerService.findProductById(idVer);
+    await this.InventoryHandlerService.findProductById(idVer);
+    } catch (error) {
+      throw new HttpException({
+        status: HttpStatus.NOT_FOUND,
+        error: error.message},
+        HttpStatus.NOT_FOUND, {
+        cause: error
+      });
+      }
   }
 
   @Post('addProduct')
   async addProduct(@Body() newProduct: AddProductDto) {
-    return this.InventoryHandlerService.addProduct(newProduct);
+    await this.InventoryHandlerService.addProduct(newProduct);
   }
 
   @Get('inventory')
-  getInventory() {
-    return this.InventoryHandlerService.getInventory();
+  async getInventory() {
+    await this.InventoryHandlerService.getInventory();
   }
 
   @Delete('removeProduct/:id')
   async removeProduct(@Param('id') id: string) {
     let idVer= new IdDto();
     idVer.id = parseInt(id, 10);
-    return this.InventoryHandlerService.removeProduct(idVer);
+    await this.InventoryHandlerService.removeProduct(idVer);
   }
 
   @Patch('editProduct/:id')
-  editProduct(
+  async editProduct(
     @Param('id') id: string,
     @Body() body: EditProductDto
   ) {
     let idVer= new IdDto();
     idVer.id = parseInt(id, 10);
-    return this.InventoryHandlerService.editProduct(idVer, body);
+    await this.InventoryHandlerService.editProduct(idVer, body);
   }
+
+  //TODO: Controllare se si possono aggiungere errori a runtime alla risposta HTTP
 
 }
