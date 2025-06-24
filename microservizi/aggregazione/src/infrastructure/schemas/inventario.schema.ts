@@ -1,27 +1,27 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document } from 'mongoose';
 
-export type InventarioDocument = InventarioMongo & Document;
+export type InventoryDocument = CloudInventoryMongo & Document;
 
-@Schema({ collection: 'inventario' })
-export class InventarioMongo {
+@Schema({ collection: 'inventory' })
+export class CloudInventoryMongo {
   @Prop({ required: true })
-  codice_barre: string;
-
-  @Prop({ required: true })
-  nome_prodotto: string;
+  barCode: string;
 
   @Prop({ required: true })
-  prezzo_unitario: number;
+  productName: string;
 
   @Prop({ required: true })
-  quantita: number;
+  unitaryPrice: number;
+
+  @Prop({ required: true })
+  quantity: number;
 
   @Prop()
-  quantita_minima: number;
+  minQuantity: number;
 
   @Prop()
-  quantita_massima: number;
+  maxQuantity: number;
 }
 
-export const InventarioSchema = SchemaFactory.createForClass(InventarioMongo);
+export const InventorySchema = SchemaFactory.createForClass(CloudInventoryMongo);

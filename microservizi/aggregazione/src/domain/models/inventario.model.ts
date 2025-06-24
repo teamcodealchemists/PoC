@@ -1,10 +1,11 @@
-export class Inventario {
+// Cambiare il nome del model
+export class Inventory {
   constructor(
-    public readonly codice_barre: string,
-    public readonly nome_prodotto: string,
-    public readonly prezzo_unitario: number,
-    public  quantita: number,
-    public readonly quantita_minima?: number,
-    public readonly quantita_massima?: number,
+    public readonly barCode: string,
+    public readonly productName: string,
+    public readonly unitaryPrice : number,
+    public  quantity: number,
+    public readonly minQuantity?: number,
+    public readonly maxQuantity?: number,
   ) {}
 }

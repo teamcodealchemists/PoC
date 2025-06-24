@@ -1,11 +1,6 @@
-import { Inventario } from '../models/inventario.model';
+import { Inventory } from '../models/inventario.model';
 
-export interface InventarioRepository {
-  findAll(): Promise<Inventario[]>;
-  findByCodiceBarre(codice: string): Promise<Inventario | null>;
-  getQuantitaTotale(): Promise<number>;
-  aggiungiProdotto(prodotto: Inventario): Promise<Inventario>;
-  removeByCodiceBarre(codice: string): Promise<boolean>;
-  aggiornaQuantita(codice: string, nuovaQuantita: number): Promise<Inventario | null>;
-  findProdottiARischio(): Promise<Inventario[]>;
+export interface InventoryRepository{
+  findAll(): Promise<Inventory[]>;
+  findByBarCode(code: string): Promise<Inventory | null>;
 }
