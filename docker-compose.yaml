@@ -34,18 +34,19 @@ services:
        - net-magazzino
 
   api-gateway:
-    image: devopsfaith/krakend
+    build: 
+      context: ./microservizi/api_gateway
+      dockerfile: Dockerfile
     container_name: api-gateway
     ports:
       - "8080:8080" # Gateway API
     networks:
       - net-magazzino
+    volumes:
+      - ./microservizi/api_gateway:/usr/src/app/src
     depends_on:
       - inventario
       - nats
-    volumes:
-      - ./microservizi/api_gateway/krakend.json:/etc/krakend/krakend.json
-    command: ["run", "-d", "-c", "/etc/krakend/krakend.json"]
 
 networks:
   net-magazzino:    
