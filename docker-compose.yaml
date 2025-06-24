@@ -16,6 +16,23 @@ services:
     depends_on:
       - mongo
 
+  ordini:
+    build: 
+      context: ./microservizi/magazzino/ordini
+      dockerfile: Dockerfile
+    ports:
+      - "3001:3000"
+    networks:
+      - net-magazzino
+    environment:
+      - PORT=3000
+      - ID_MAGAZZINO=1
+      - MONGO_URL=mongodb://mongo:27017/inventory
+    volumes:
+      - ./microservizi/magazzino/ordini/src:/usr/src/app/src
+    depends_on:
+      - mongo
+
   mongo:
     image: mongo:latest
     container_name: mongo
