@@ -3,7 +3,7 @@ import { Document } from 'mongoose';
 
 export type InventoryDocument = InventoryMongo & Document;
 
-@Schema({ collection: 'inventory' })
+@Schema({ collection: 'ordini' })
 export class InventoryMongo {
   @Prop({ required: true })
   id: number;
