@@ -1,22 +1,22 @@
-import { Order } from './GeneralOrder';
-import {OrderState} from './OrderState.enum';
-export class ConcreteOrder extends Order {
+import {GeneralOrder } from './GeneralOrder';
+import {OrderState} from './orderState.enum';
+export class ConcreteExternalOrder extends GeneralOrder {
   constructor(
     orderID : number,
     orderState : OrderState,
-    dataCreation : Date,
-    timetoArrive : Date,
-    codiceBarreProdotto : String,
-    quantità : number,
+    creationDate : Date,
+    timeToArrive : Date,
+    idProduct : number,
+    quantity : number,
     public warehouseDeparture : number,
     public externalAddress : number
   ) {
       super(
       orderID,
       orderState,
-      dataCreation,
-      timetoArrive,
-      codiceBarreProdotto,
-      quantità);
+      creationDate,
+      timeToArrive,
+      idProduct,
+      quantity);
   }
 }

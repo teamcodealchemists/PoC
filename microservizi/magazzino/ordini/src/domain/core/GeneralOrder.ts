@@ -1,12 +1,12 @@
-import {OrderState} from './OrderState.enum';
-export class supplyOrder {
+import {OrderState} from './orderState.enum';
+export class GeneralOrder {
     constructor(
        protected orderID : number,
        protected orderState : OrderState,
-       protected dataCreation : Date,
-       protected timetoArrive : Date,
-       protected codiceBarreProdotto : String,
-       protected quantità : number
+       protected creationDate : Date,
+       protected timeToArrive : Date,
+       protected idProduct : number,
+       protected quantity : number
     ) { }
 }
 

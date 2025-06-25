@@ -1,6 +1,0 @@
-export enum OrderState {
-  InCorso = "in_corso",
-  Spedito = "spedito",
-  Arrivato = "arrivato",
-  Annullato = "annullato"
-}
