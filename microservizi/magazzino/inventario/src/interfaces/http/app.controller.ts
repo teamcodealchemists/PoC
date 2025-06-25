@@ -1,11 +1,13 @@
-import { Controller, Get, Param, Post, Body, Delete, Patch, HttpException, HttpStatus } from '@nestjs/common';
+import { Controller, Get, Param, Post, Body, Delete, Patch, HttpException, HttpStatus, UsePipes, ValidationPipe, NotFoundException } from '@nestjs/common';
 import { InventoryHandlerService } from 'src/application/inventoryHandler.service';
+import { RpcException } from '@nestjs/microservices';
 
 import { AddProductDto } from './dto/addProduct.dto';
 import { IdDto } from './dto/id.dto';
 import { EditProductDto } from './dto/editProduct.dto';
 
 import { ConfigService } from '@nestjs/config';
+import { MessagePattern, Payload } from '@nestjs/microservices';
 
 let conf = new ConfigService();
 
@@ -17,7 +19,7 @@ export class AppController {
   @Get('whoareyou')
   async getInfo(): Promise<string> {
     const quantitaTotale = await this.InventoryHandlerService.getTotal();
-    return `Ciao sono il magazzino '${conf.get<string>("WAREHOUSE_ID")}' ed ho ${quantitaTotale} prodotti`;
+    return `Ciao sono il magazzino '${process.env.WAREHOUSE_ID}' ed ho ${quantitaTotale} prodotti`;
   }
 
   @Get('product/:id')
@@ -35,6 +37,20 @@ export class AppController {
         cause: error
       });
       }
+  }
+
+  // Gestione dei messaggi NATS per il microservizio di magazzino
+  @MessagePattern({ cmd: 'getProduct' })
+  @UsePipes(new ValidationPipe({ transform: true, whitelist: true }))
+  async getProductById(@Payload() idDto: IdDto) {
+    try {
+      return await this.InventoryHandlerService.findProductById(idDto);
+    } catch (error) {
+      if (error instanceof NotFoundException) {
+        throw new RpcException({ code: 404, message: 'Product not found' });
+      }
+      throw new RpcException({ code: 500, message: error.message });
+    }
   }
 
   @Post('addProduct')

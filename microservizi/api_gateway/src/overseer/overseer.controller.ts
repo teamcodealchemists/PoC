@@ -29,11 +29,10 @@ export class OverseerController {
         try {
             return await lastValueFrom(this.natsClient.send(pattern, payload));
         } catch (error) {
-            if (error.code === '404') {
+            // Se l'errore arriva da RpcException, avrà error.code e error.message
+            if (error.code === 404) {
                 throw new HttpException('Product not found', 404);
-            }
-            else 
-            {
+            } else {
                 throw new HttpException('Error fetching product', 500);
             }
         }

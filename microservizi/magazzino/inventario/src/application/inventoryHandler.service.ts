@@ -1,4 +1,4 @@
-import { Injectable, Inject } from '@nestjs/common';
+import { Injectable, Inject, NotFoundException } from '@nestjs/common';
 import { ConcreteProduct } from "src/domain/core/concreteProduct";
 import { AddProductDto } from "src/interfaces/http/dto/addProduct.dto";
 import { IdDto } from "src/interfaces/http/dto/id.dto";
@@ -36,7 +36,7 @@ export class InventoryHandlerService {
     const product = await this.inventoryRepository.findById(id.id);
 
     if (!product) {
-      throw new Error(`Product with id ${id.id} not found`);
+      throw new NotFoundException(`Product with id ${id.id} not found`);
     }
 
     return this.inventoryRepository.findById(id.id);
