@@ -8,7 +8,7 @@ import {
 import { Type } from 'class-transformer';
 import { OrderState } from '../../../domain/core/orderState.enum';
 
-export class SupplyOrderDto {
+export class AddExternalOrderDto {
 
     @IsNotEmpty()
     @IsInt()

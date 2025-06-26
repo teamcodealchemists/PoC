@@ -9,7 +9,7 @@ import { OrderState } from '../../../domain/core/orderState.enum';
 @Injectable()
 export class InternalOrderRepositoryMongo implements OrderRepository {
   constructor(
-    @InjectModel(InternalOrderMongo.name, 'internal')
+    @InjectModel(InternalOrderMongo.name, 'orders')
     private readonly orderModel: Model<InternalOrderDocument>
   ) {}
 

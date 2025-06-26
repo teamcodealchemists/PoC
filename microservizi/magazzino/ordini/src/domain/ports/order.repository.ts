@@ -1,12 +1,10 @@
 import { ConcreteInternalOrder } from "../core/concreteInternalOrder";
 import { ConcreteExternalOrder } from "../core/concreteExternalOrder";
-import { ConcreteSupplyOrder } from "../core/concreteSupplyOrder";
 import { OrderState } from "../core/orderState.enum";
 
 export type ConcreteOrder =
   | ConcreteInternalOrder
-  | ConcreteExternalOrder
-  | ConcreteSupplyOrder;
+  | ConcreteExternalOrder;
 
 export interface OrderRepository {
   getOrder(orderId: number): Promise<ConcreteOrder | null>;
