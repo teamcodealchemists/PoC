@@ -4,7 +4,7 @@ import { OrderState } from '../../domain/core/orderState.enum';
 
 export type ExternalOrderDocument = ExternalOrderMongo & Document;
 
-@Schema({ collection: 'external_orders' })
+@Schema({ _id: false })
 export class ProductQuantityMongo {
   @Prop({ required: true })
   idProduct: number;
