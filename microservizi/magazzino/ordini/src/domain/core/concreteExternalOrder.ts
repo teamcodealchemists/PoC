@@ -1,4 +1,4 @@
-import {GeneralOrder } from './GeneralOrder';
+import { GeneralOrder, ProductQuantity } from './GeneralOrder';
 import {OrderState} from './orderState.enum';
 export class ConcreteExternalOrder extends GeneralOrder {
   constructor(
@@ -6,8 +6,7 @@ export class ConcreteExternalOrder extends GeneralOrder {
     orderState : OrderState,
     creationDate : Date,
     timeToArrive : Date,
-    idProduct : number,
-    quantity : number,
+    products: ProductQuantity[],
     public warehouseDeparture : number,
     public externalAddress : number
   ) {
@@ -16,7 +15,6 @@ export class ConcreteExternalOrder extends GeneralOrder {
       orderState,
       creationDate,
       timeToArrive,
-      idProduct,
-      quantity);
+      products);
   }
 }

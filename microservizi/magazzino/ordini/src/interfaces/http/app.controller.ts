@@ -24,7 +24,6 @@ export class OrderController {
 
   @Get('internal')
   async getAllInternalOrders() {
-    console.log("Boh ciao funziono forse");
     return await this.internalOrderRepo.getAllOrders();
   }
 
