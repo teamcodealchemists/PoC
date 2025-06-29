@@ -22,23 +22,6 @@ export class AppController {
     return `Ciao sono il magazzino '${process.env.WAREHOUSE_ID}' ed ho ${quantitaTotale} prodotti`;
   }
 
-  @Get('product/:id')
-  async findProductById(@Param('id') id: string) {
-    try {
-    let idVer= new IdDto();
-    idVer.id = parseInt(id, 10);
-    const product = await this.InventoryHandlerService.findProductById(idVer);
-    return { data: product };
-    } catch (error) {
-      throw new HttpException({
-        status: HttpStatus.NOT_FOUND,
-        error: error.message},
-        HttpStatus.NOT_FOUND, {
-        cause: error
-      });
-      }
-  }
-
   // Gestione dei messaggi NATS per il microservizio di magazzino
   @MessagePattern({ cmd: 'getProduct' })
   @UsePipes(new ValidationPipe({ transform: true, whitelist: true }))
@@ -53,9 +36,28 @@ export class AppController {
     }
   }
 
-  @Post('addProduct')
-  async addProduct(@Body() newProduct: AddProductDto) {
-    await this.InventoryHandlerService.addProduct(newProduct);
+  //TODO: Rimuovere in quanto non serve più, ora il magazzino è un microservizio
+  //@Post('addProduct')
+  //async addProduct(@Body() newProduct: AddProductDto) {
+  //  await this.InventoryHandlerService.addProduct(newProduct);
+  //}
+
+  @MessagePattern({ cmd: `addProduct.${process.env.WAREHOUSE_ID}`})
+  async addProduct(@Payload() newProduct: AddProductDto) {
+    console.log(`Adding product to warehouse ${process.env.WAREHOUSE_ID}:`, newProduct);
+    try {
+      await this.InventoryHandlerService.addProduct(newProduct);
+      return { success: true, message: `Product added to warehouse ${process.env.WAREHOUSE_ID}` };
+    } catch (error) {
+      if (error instanceof RpcException && error.message?.includes('already exists')) {
+      throw new RpcException({ code: 409, message: 'Product already added to warehouse' });
+      }
+      if (error.message?.includes('already exists')) {
+      throw new RpcException({ code: 409, message: 'Product already added to warehouse' });
+      }
+      console.error(`Error adding product to warehouse ${process.env.WAREHOUSE_ID}:`, error);
+      throw new RpcException({ code: 500, message: error.message });
+    }
   }
 
   @Get('inventory')
@@ -71,16 +73,17 @@ export class AppController {
     await this.InventoryHandlerService.removeProduct(idVer);
   }
 
-  @Patch('editProduct/:id')
-  async editProduct(
-    @Param('id') id: string,
-    @Body() body: EditProductDto
-  ) {
-    let idVer= new IdDto();
-    idVer.id = parseInt(id, 10);
-    await this.InventoryHandlerService.editProduct(idVer, body);
+  @MessagePattern({ cmd: `editProduct.${process.env.WAREHOUSE_ID}`})
+  async editProduct(@Payload() body: EditProductDto) {
+    try {
+      await this.InventoryHandlerService.editProduct(body);
+      return { success: true, message: `Product ${body.id} edited in warehouse ${process.env.WAREHOUSE_ID}` };
+    } catch (error) {
+      if (error instanceof NotFoundException) {
+        throw new RpcException({ code: 404, message: 'Product not found' });
+      }
+      throw new RpcException({ code: 500, message: error.message });
+    }
   }
-
-  //TODO: Controllare se si possono aggiungere errori a runtime alla risposta HTTP
 
 }
