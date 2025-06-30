@@ -36,29 +36,24 @@ export class AppController {
     }
   }
 
-  //TODO: Rimuovere in quanto non serve più, ora il magazzino è un microservizio
-  @Post('addProduct')
-  async addProduct(@Body() newProduct: AddProductDto) {
-    await this.InventoryHandlerService.addProduct(newProduct);
-  }
 
-  //@MessagePattern({ cmd: `addProduct.${process.env.WAREHOUSE_ID}`})
-  //async addProduct(@Payload() newProduct: AddProductDto) {
-  //  console.log(`Adding product to warehouse ${process.env.WAREHOUSE_ID}:`, newProduct);
-  //  try {
-  //    await this.InventoryHandlerService.addProduct(newProduct);
-  //    return { success: true, message: `Product added to warehouse ${process.env.WAREHOUSE_ID}` };
-  //  } catch (error) {
-  //    if (error instanceof RpcException && error.message?.includes('already exists')) {
-  //    throw new RpcException({ code: 409, message: 'Product already added to warehouse' });
-  //    }
-  //    if (error.message?.includes('already exists')) {
-  //    throw new RpcException({ code: 409, message: 'Product already added to warehouse' });
-  //    }
-  //    console.error(`Error adding product to warehouse ${process.env.WAREHOUSE_ID}:`, error);
-  //    throw new RpcException({ code: 500, message: error.message });
-  //  }
-  //}
+  @MessagePattern({ cmd: `addProduct.${process.env.WAREHOUSE_ID}`})
+  async addProduct(@Payload() newProduct: AddProductDto) {
+    console.log(`Adding product to warehouse ${process.env.WAREHOUSE_ID}:`, newProduct);
+    try {
+      await this.InventoryHandlerService.addProduct(newProduct);
+      return { success: true, message: `Product added to warehouse ${process.env.WAREHOUSE_ID}` };
+    } catch (error) {
+      if (error instanceof RpcException && error.message?.includes('already exists')) {
+      throw new RpcException({ code: 409, message: 'Product already added to warehouse' });
+      }
+      if (error.message?.includes('already exists')) {
+      throw new RpcException({ code: 409, message: 'Product already added to warehouse' });
+      }
+      console.error(`Error adding product to warehouse ${process.env.WAREHOUSE_ID}:`, error);
+      throw new RpcException({ code: 500, message: error.message });
+    }
+  }
 
   @Get('inventory')
   async getInventory() {
