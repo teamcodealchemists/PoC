@@ -66,8 +66,8 @@ export class InventoryRepositoryMongo implements InventoryRepository {
   async stockRemoved(stock: StockRemovedDto): Promise<void> {
     // stock.id dovrebbe essere un composito tra warehouse id e barcode id
     const user = await this.productInWarehouseModel
-      .findByIdAndDelete(stock.id)
-      .exec();
+      //.findByIdAndDelete(stock.id)
+      //.exec();
   }
 
   private toDomain(doc: InventoryDocument): Inventory {

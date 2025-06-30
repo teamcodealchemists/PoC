@@ -16,8 +16,8 @@ export class AppController {
   constructor(private readonly InventoryHandlerService: InventoryHandlerService) { }
 
   // Informazioni di Diagnostica Magazzino 
-  @Get('whoareyou')
-  async getInfo(): Promise<string> {
+  @MessagePattern({ cmd:  `getStatus.${process.env.WAREHOUSE_ID}` })
+  async getStatus(): Promise<string> {
     const quantitaTotale = await this.InventoryHandlerService.getTotal();
     return `Ciao sono il magazzino '${process.env.WAREHOUSE_ID}' ed ho ${quantitaTotale} prodotti`;
   }
@@ -37,6 +37,7 @@ export class AppController {
   }
 
 
+  // Aggiunta di un nuovo prodotto al magazzino
   @MessagePattern({ cmd: `addProduct.${process.env.WAREHOUSE_ID}`})
   async addProduct(@Payload() newProduct: AddProductDto) {
     console.log(`Adding product to warehouse ${process.env.WAREHOUSE_ID}:`, newProduct);
@@ -51,6 +52,17 @@ export class AppController {
       throw new RpcException({ code: 409, message: 'Product already added to warehouse' });
       }
       console.error(`Error adding product to warehouse ${process.env.WAREHOUSE_ID}:`, error);
+      throw new RpcException({ code: 500, message: error.message });
+    }
+  }
+
+  @MessagePattern({ cmd: `getInventory.${process.env.WAREHOUSE_ID}`})
+  async getInventoryByWarehouse(): Promise<any> {
+    try {
+      const items = await this.InventoryHandlerService.getInventory();
+      return { data: items };
+    } catch (error) {
+      console.error(`Error fetching inventory for warehouse ${process.env.WAREHOUSE_ID}:`, error);
       throw new RpcException({ code: 500, message: error.message });
     }
   }

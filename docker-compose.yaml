@@ -47,10 +47,11 @@ services:
      image: nats:latest
      ports:
        - "4222:4222"
-     command:
-       - "--jetstream"
+       - "8222:8222"
+     command: ["--jetstream", "-VV", "-m", "8222"]
      networks:
        - net-magazzino
+     
 
   api-gateway:
     build: 
