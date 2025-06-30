@@ -28,5 +28,4 @@ export class EventsMicroserviceController {
     console.log(stockModifiedDto);
     //TODO: Implementa la logica per gestire l'evento stockModified
   }
-
 }
