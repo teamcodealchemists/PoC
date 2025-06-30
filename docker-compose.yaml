@@ -9,7 +9,7 @@ services:
       - net-magazzino
     environment:
       - PORT=3000
-      - ID_MAGAZZINO=1
+      - WAREHOUSE_ID=1
       - MONGO_URL=mongodb://mongo:27017/inventory
     volumes:
       - ./microservizi/magazzino/inventario/src:/usr/src/app/src
@@ -43,20 +43,18 @@ services:
     depends_on:
       - mongo
 
-  mongo-aggregatore:
-    image: mongo:latest
-    container_name: mongo-aggregatore
-    ports:
-      - "27018:27017"
-    networks:
-      - net-magazzino
-    volumes:
-      - ./microservizi/magazzino/mongo_db:/docker-entrypoint-initdb.d
+  nats:
+     image: nats:latest
+     ports:
+       - "4222:4222"
+     command:
+       - "--jetstream"
+     networks:
+       - net-magazzino
 
 networks:
   net-magazzino:
     driver: bridge
-
   #    depends_on:
   #      - nats-inventario
 
@@ -82,3 +80,5 @@ networks:
   #     - "4222:4222"
   #   networks:
   #     - net-magazzino
+
+

@@ -1,7 +1,12 @@
-import { Min, IsInt, IsOptional } from 'class-validator';
+import { Min, IsInt, IsOptional, IsNotEmpty } from 'class-validator';
 
 export class EditProductDto {
-  
+    
+    @IsNotEmpty()
+    @IsInt()
+    @Min(0)
+    id : number;
+
     @IsInt()
     @Min(0)
     @IsOptional()
@@ -15,5 +20,5 @@ export class EditProductDto {
     @IsInt()
     @Min(0)
     @IsOptional()
-    maxQuantity: number;    
+    maxQuantity: number;
 }

@@ -1,9 +1,10 @@
 import { IsNotEmpty, IsString, Min, IsInt, IsNumber, IsOptional } from 'class-validator';
 
 export class AddProductDto {
-  
+    
     @IsNotEmpty()
     @IsInt()
+    @Min(0)
     id : number;
 
     @IsNotEmpty()
