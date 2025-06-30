@@ -1,4 +1,4 @@
-import { Injectable, Inject } from '@nestjs/common';
+import { Injectable, Inject, NotFoundException } from '@nestjs/common';
 import { ConcreteProduct } from "src/domain/core/concreteProduct";
 import { AddProductDto } from "src/interfaces/http/dto/addProduct.dto";
 import { IdDto } from "src/interfaces/http/dto/id.dto";
@@ -29,12 +29,16 @@ export class InventoryHandlerService {
       dto.maxQuantity !== undefined || null || "" ? dto.maxQuantity : 0
     );
 
-    console.log('New product created:', newProduct);
-
     await this.inventoryRepository.addProduct(newProduct);
   }
 
   async findProductById(id: IdDto): Promise<ConcreteProduct | null> {
+    const product = await this.inventoryRepository.findById(id.id);
+
+    if (!product) {
+      throw new NotFoundException(`Product with id ${id.id} not found`);
+    }
+
     return this.inventoryRepository.findById(id.id);
   }
 
@@ -52,23 +56,23 @@ export class InventoryHandlerService {
     }
   }
 
-  async editProduct(id: IdDto, body: EditProductDto): Promise<void> {
-    const product = await this.inventoryRepository.findById(id.id);
+  async editProduct(reqBody: EditProductDto): Promise<void> {
+    const product = await this.inventoryRepository.findById(reqBody.id);
 
     if (!product) {
-      throw new Error('Product not found');
+      throw new NotFoundException('Product not found');
     }
 
     const updatedProduct = new ConcreteProduct(
-      id.id,
+      reqBody.id,
       product.getName(),
       product.getUnitPrice(),
-      body.quantity !== undefined || null || "" ? body.quantity : product.getQuantity(),
-      body.minQuantity !== undefined || null || "" ? body.minQuantity : product.getMinQuantity(),
-      body.maxQuantity !== undefined || null || "" ? body.maxQuantity : product.getMaxQuantity()
+      reqBody.quantity !== undefined || null || "" ? reqBody.quantity : product.getQuantity(),
+      reqBody.minQuantity !== undefined || null || "" ? reqBody.minQuantity : product.getMinQuantity(),
+      reqBody.maxQuantity !== undefined || null || "" ? reqBody.maxQuantity : product.getMaxQuantity()
     );
 
-    await this.inventoryRepository.updateProduct(id.id, updatedProduct);
+    await this.inventoryRepository.updateProduct(reqBody.id, updatedProduct);
   }
 
   async getTotal(): Promise<number> {

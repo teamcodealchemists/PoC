@@ -1,9 +1,15 @@
-import { Controller, Get, Param, Post, Body, Delete, Patch, HttpException, HttpStatus } from '@nestjs/common';
+import { Controller, Get, Param, Post, Body, Delete, Patch, HttpException, HttpStatus, UsePipes, ValidationPipe, NotFoundException } from '@nestjs/common';
 import { InventoryHandlerService } from 'src/application/inventoryHandler.service';
+import { RpcException } from '@nestjs/microservices';
 
 import { AddProductDto } from './dto/addProduct.dto';
 import { IdDto } from './dto/id.dto';
 import { EditProductDto } from './dto/editProduct.dto';
+
+import { ConfigService } from '@nestjs/config';
+import { MessagePattern, Payload } from '@nestjs/microservices';
+
+let conf = new ConfigService();
 
 @Controller()
 export class AppController {
@@ -13,33 +19,51 @@ export class AppController {
   @Get('whoareyou')
   async getInfo(): Promise<string> {
     const quantitaTotale = await this.InventoryHandlerService.getTotal();
-    return `Ciao sono il magazzino '1' ed ho ${quantitaTotale} prodotti`;
+    return `Ciao sono il magazzino '${process.env.WAREHOUSE_ID}' ed ho ${quantitaTotale} prodotti`;
   }
 
-  @Get('product/:id')
-  async findProductById(@Param('id') id: string) {
+  // Gestione dei messaggi NATS per il microservizio di magazzino
+  @MessagePattern({ cmd: 'getProduct' })
+  @UsePipes(new ValidationPipe({ transform: true, whitelist: true }))
+  async getProductById(@Payload() idDto: IdDto) {
     try {
-    let idVer= new IdDto();
-    idVer.id = parseInt(id, 10);
-    await this.InventoryHandlerService.findProductById(idVer);
+      return await this.InventoryHandlerService.findProductById(idDto);
     } catch (error) {
-      throw new HttpException({
-        status: HttpStatus.NOT_FOUND,
-        error: error.message},
-        HttpStatus.NOT_FOUND, {
-        cause: error
-      });
+      if (error instanceof NotFoundException) {
+        throw new RpcException({ code: 404, message: 'Product not found' });
       }
+      throw new RpcException({ code: 500, message: error.message });
+    }
   }
 
-  @Post('addProduct')
-  async addProduct(@Body() newProduct: AddProductDto) {
-    await this.InventoryHandlerService.addProduct(newProduct);
+  //TODO: Rimuovere in quanto non serve più, ora il magazzino è un microservizio
+  //@Post('addProduct')
+  //async addProduct(@Body() newProduct: AddProductDto) {
+  //  await this.InventoryHandlerService.addProduct(newProduct);
+  //}
+
+  @MessagePattern({ cmd: `addProduct.${process.env.WAREHOUSE_ID}`})
+  async addProduct(@Payload() newProduct: AddProductDto) {
+    console.log(`Adding product to warehouse ${process.env.WAREHOUSE_ID}:`, newProduct);
+    try {
+      await this.InventoryHandlerService.addProduct(newProduct);
+      return { success: true, message: `Product added to warehouse ${process.env.WAREHOUSE_ID}` };
+    } catch (error) {
+      if (error instanceof RpcException && error.message?.includes('already exists')) {
+      throw new RpcException({ code: 409, message: 'Product already added to warehouse' });
+      }
+      if (error.message?.includes('already exists')) {
+      throw new RpcException({ code: 409, message: 'Product already added to warehouse' });
+      }
+      console.error(`Error adding product to warehouse ${process.env.WAREHOUSE_ID}:`, error);
+      throw new RpcException({ code: 500, message: error.message });
+    }
   }
 
   @Get('inventory')
   async getInventory() {
-    await this.InventoryHandlerService.getInventory();
+    const items = await this.InventoryHandlerService.getInventory();
+    return { data: items };
   }
 
   @Delete('removeProduct/:id')
@@ -49,16 +73,17 @@ export class AppController {
     await this.InventoryHandlerService.removeProduct(idVer);
   }
 
-  @Patch('editProduct/:id')
-  async editProduct(
-    @Param('id') id: string,
-    @Body() body: EditProductDto
-  ) {
-    let idVer= new IdDto();
-    idVer.id = parseInt(id, 10);
-    await this.InventoryHandlerService.editProduct(idVer, body);
+  @MessagePattern({ cmd: `editProduct.${process.env.WAREHOUSE_ID}`})
+  async editProduct(@Payload() body: EditProductDto) {
+    try {
+      await this.InventoryHandlerService.editProduct(body);
+      return { success: true, message: `Product ${body.id} edited in warehouse ${process.env.WAREHOUSE_ID}` };
+    } catch (error) {
+      if (error instanceof NotFoundException) {
+        throw new RpcException({ code: 404, message: 'Product not found' });
+      }
+      throw new RpcException({ code: 500, message: error.message });
+    }
   }
-
-  //TODO: Controllare se si possono aggiungere errori a runtime alla risposta HTTP
 
 }
