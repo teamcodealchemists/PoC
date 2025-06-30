@@ -4,13 +4,15 @@ import { AddProductDto } from "src/interfaces/http/dto/addProduct.dto";
 import { IdDto } from "src/interfaces/http/dto/id.dto";
 import { EditProductDto } from "src/interfaces/http/dto/editProduct.dto";
 import { InventoryRepository } from "src/domain/ports/inventory.repository";
+import { ClientProxy } from '@nestjs/microservices';
 
 
 @Injectable()
 export class InventoryHandlerService {
   constructor(
     @Inject('InventoryRepository')
-    private readonly inventoryRepository: InventoryRepository
+    private readonly inventoryRepository: InventoryRepository,
+    @Inject('NATS_SERVICE') private readonly natsClient: ClientProxy
   ) {}
 
   async addProduct(dto: AddProductDto): Promise<void> {
@@ -30,6 +32,7 @@ export class InventoryHandlerService {
     );
 
     await this.inventoryRepository.addProduct(newProduct);
+    this.natsClient.emit('stockAdded', newProduct);
   }
 
   async findProductById(id: IdDto): Promise<ConcreteProduct | null> {
@@ -52,6 +55,7 @@ export class InventoryHandlerService {
       throw new Error('Product not found');
     }
     else {
+      this.natsClient.emit('stockRemoved', id.id);
       return;
     }
   }
@@ -73,6 +77,7 @@ export class InventoryHandlerService {
     );
 
     await this.inventoryRepository.updateProduct(reqBody.id, updatedProduct);
+    this.natsClient.emit('stockModified', updatedProduct);
   }
 
   async getTotal(): Promise<number> {

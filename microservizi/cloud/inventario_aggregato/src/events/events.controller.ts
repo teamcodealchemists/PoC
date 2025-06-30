@@ -14,13 +14,13 @@ export class EventsMicroserviceController {
   @EventPattern('stockAdded')
   stockAdded(@Payload() stockAddedDto: StockAddedDto) {
     console.log(stockAddedDto);
-    this.eventsService.stockAdded(stockAddedDto);
+    //this.eventsService.stockAdded(stockAddedDto);
   }
 
   @EventPattern('stockRemoved')
   stockRemoved(@Payload() stockRemovedDto: StockRemovedDto) {
     console.log(stockRemovedDto);
-    this.eventsService.stockRemoved(stockRemovedDto);
+    //this.eventsService.stockRemoved(stockRemovedDto);
   }
 
   @EventPattern('stockModified')

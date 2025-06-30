@@ -2,6 +2,7 @@ import { InventoryHandlerService } from './application/inventoryHandler.service'
 import { Module } from '@nestjs/common';
 import { MongooseModule } from '@nestjs/mongoose';
 import { ConfigModule } from '@nestjs/config';
+import { ClientsModule, Transport } from '@nestjs/microservices';
 
 import { AppController } from './interfaces/http/app.controller';
 
@@ -15,11 +16,20 @@ import { InventoryRepositoryMongo } from './infrastructure/adapters/mongo_db/inv
     MongooseModule.forFeature([
       { name: InventoryMongo.name, schema: InventorySchema },
     ]),
+    ClientsModule.register([
+      {
+        name: 'NATS_SERVICE',
+        transport: Transport.NATS,
+        options: {
+          // Configura qui i parametri di connessione NATS se necessario
+          servers: [process.env.NATS_URL || 'nats://nats']
+        },
+      },
+    ]),
   ],
   controllers: [AppController],
   providers: [
     InventoryHandlerService,
-    { provide: 'InventoryRepository', useClass: InventoryRepositoryMongo }
-    ]
+    { provide: 'InventoryRepository', useClass: InventoryRepositoryMongo }]
 })
 export class AppModule {}
