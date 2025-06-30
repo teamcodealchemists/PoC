@@ -23,11 +23,4 @@ export class EventsMicroserviceController {
     console.log(stockRemovedDto);
     this.eventsService.stockRemoved(stockRemovedDto);
   }
-
-  /* 
-  @EventPattern('stockModified')
-  stockModified(@Payload() stockModifiedDto: StockAddedDto) {
-    console.log(stockModifiedDto);
-  }
-  */
 }
