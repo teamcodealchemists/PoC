@@ -9,7 +9,7 @@ services:
       - net-magazzino
     environment:
       - PORT=3000
-      - ID_MAGAZZINO=1
+      - WAREHOUSE_ID=1
       - MONGO_URL=mongodb://mongo:27017/inventory
     volumes:
       - ./microservizi/magazzino/inventario/src:/usr/src/app/src
@@ -26,11 +26,36 @@ services:
     volumes:
       - ./microservizi/magazzino/mongo_db:/docker-entrypoint-initdb.d
 
+  nats:
+     image: nats:latest
+     ports:
+       - "4222:4222"
+     command:
+       - "--jetstream"
+     networks:
+       - net-magazzino
+
+  api-gateway:
+    build: 
+      context: ./microservizi/api_gateway
+      dockerfile: Dockerfile
+    container_name: api-gateway
+    ports:
+      - "8080:8080" # Gateway API
+    environment:
+      - PORT=8080
+      - NATS_URL=nats://nats:4222
+    networks:
+      - net-magazzino
+    volumes:
+      - ./microservizi/api_gateway:/usr/src/app/src
+    depends_on:
+      - inventario
+      - nats
+
 networks:
   net-magazzino:    
     driver: bridge
-  #    depends_on:
-  #      - nats-inventario
 
   #--------------------------------------#
 
@@ -46,12 +71,6 @@ networks:
   #   image: swe/ordini-a
   #   ports:
   #     - "8081:3000"
-  #   networks:
-  #     - net-magazzino
-  # nats-inventario:
-  #   image: nats:latest
-  #   ports:
-  #     - "4222:4222"
   #   networks:
   #     - net-magazzino
 
