@@ -1,5 +1,6 @@
 services:
   inventario:
+    container_name: inventario
     build: 
       context: ./microservizi/magazzino/inventario
       dockerfile: Dockerfile
@@ -17,6 +18,7 @@ services:
       - mongo
 
   ordini:
+    container_name: ordini
     build: 
       context: ./microservizi/magazzino/ordini
       dockerfile: Dockerfile
@@ -44,6 +46,7 @@ services:
       - ./microservizi/magazzino/mongo_db:/docker-entrypoint-initdb.d
 
   nats:
+     container_name: nats
      image: nats:latest
      ports:
        - "4222:4222"
@@ -53,10 +56,10 @@ services:
        - net-magazzino
 
   api-gateway:
+    container_name: api-gateway
     build: 
       context: ./microservizi/api_gateway
       dockerfile: Dockerfile
-    container_name: api-gateway
     ports:
       - "8080:8080" # Gateway API
     environment:
