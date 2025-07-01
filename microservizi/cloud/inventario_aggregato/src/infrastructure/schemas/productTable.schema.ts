@@ -2,7 +2,7 @@ import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 
 @Schema({ collection: 'productTable' })
 export class ProductTable {
-  @Prop({ required: true })
+  @Prop({ unique: true, required: true })
   barCode: string;
 
   @Prop({ required: true })
@@ -12,4 +12,5 @@ export class ProductTable {
   unitaryPrice: number;
 }
 
-export const productTableSchema = SchemaFactory.createForClass(ProductTable);
+export const productTableSchema = 
+  SchemaFactory.createForClass(ProductTable);

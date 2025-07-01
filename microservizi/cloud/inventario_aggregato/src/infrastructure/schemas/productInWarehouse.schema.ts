@@ -20,3 +20,6 @@ export class ProductInWarehouse {
 
 export const productInWarehouseSchema =
   SchemaFactory.createForClass(ProductInWarehouse);
+
+// Aggiunge l'indice composto univoco per warehouseId + barCode
+productInWarehouseSchema.index({ warehouseId: 1, barCode: 1 }, { unique: true });

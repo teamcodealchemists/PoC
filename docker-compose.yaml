@@ -24,7 +24,7 @@ services:
     networks:
       - net-magazzino
     volumes:
-      - ./microservizi/magazzino/mongo_db:/docker-entrypoint-initdb.d
+      - ./microservizi/mongo_db:/docker-entrypoint-initdb.d
 
   inventario-aggregato:
     build:
@@ -37,7 +37,7 @@ services:
     environment:
       - PORT=3010
       - ID_MAGAZZINO=1
-      - MONGO_URL=mongodb://mongo-aggregatore:27017/inventario
+      - MONGO_URL=mongodb://mongo:27017/inv_aggregato_db
     volumes:
       - ./microservizi/cloud/inventario_aggregato/src:/usr/src/app/src
     depends_on:
