@@ -4,15 +4,6 @@ import { OrderState } from '../../domain/core/orderState.enum';
 
 export type InternalOrderDocument = InternalOrderMongo & Document;
 
-@Schema({ _id: false })
-export class ProductQuantityMongo {
-  @Prop({ required: true })
-  idProduct: number;
-
-  @Prop({ required: true })
-  quantity: number;
-}
-
 @Schema({ collection: 'internal_orders' })
 export class InternalOrderMongo {
   @Prop({ required: true })
@@ -26,9 +17,6 @@ export class InternalOrderMongo {
 
   @Prop({ required: true })
   timeToArrive: Date;
-
-  @Prop({ type: [ProductQuantityMongo], required: true })
-  products: ProductQuantityMongo[];
 
   @Prop({ required: true })
   warehouseDeparture: number;

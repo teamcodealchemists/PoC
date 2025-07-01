@@ -59,7 +59,6 @@ export class InternalOrderRepositoryMongo implements OrderRepository {
       doc.orderState,
       doc.creationDate,
       doc.timeToArrive,
-      doc.products,
       doc.warehouseDestination,
       doc.warehouseDeparture
     );

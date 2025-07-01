@@ -6,7 +6,6 @@ export class ConcreteInternalOrder extends GeneralOrder {
     orderState : OrderState,
     creationDate : Date,
     timeToArrive : Date,
-    products: ProductQuantity[],
     public warehouseDestination : number,
     public warehouseDeparture : number
   ) {
@@ -14,8 +13,6 @@ export class ConcreteInternalOrder extends GeneralOrder {
       orderID,
       orderState,
       creationDate,
-      timeToArrive,
-      products
-      );
+      timeToArrive);
   }
 }

@@ -13,7 +13,6 @@ export class GeneralOrder {
        protected orderState : OrderState,
        protected creationDate : Date,
        protected timeToArrive : Date,
-       protected products: ProductQuantity[]
     ) { }
 }
 

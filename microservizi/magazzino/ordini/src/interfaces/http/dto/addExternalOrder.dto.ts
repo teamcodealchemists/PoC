@@ -4,22 +4,18 @@ import {
     IsEnum, 
     IsDate, 
     IsPositive,
+    IsArray,
     ValidateNested, 
     ArrayMinSize
 } from 'class-validator';
 import { Type } from 'class-transformer';
 import { OrderState } from '../../../domain/core/orderState.enum';
 
-class ProductQuantityDto {
-  @IsNotEmpty()
-  @IsInt()
-  @IsPositive()
+class OrderDetailDto {
   idProduct: number;
-
-  @IsNotEmpty()
-  @IsInt()
-  @IsPositive({ message: 'Quantity must be a positive integer' })
+  nameProduct: string;
   quantity: number;
+  unitaryPrice: number;
 }
 
 export class AddExternalOrderDto {
@@ -42,12 +38,12 @@ export class AddExternalOrderDto {
     @Type(() => Date)
     @IsDate({ message: 'Time to arrive must be a valid date' })
     timeToArrive: Date;
-
-    @ValidateNested({ each: true })
-    @Type(() => ProductQuantityDto)
-    @ArrayMinSize(1)
-    products: ProductQuantityDto[];
   
+    @IsArray()
+    @ValidateNested({ each: true })
+    @Type(() => OrderDetailDto)
+    orderDetails: OrderDetailDto[];
+
     @IsNotEmpty()
     @IsInt()
     @IsPositive({ message: 'Warehouse departure must be a positive integer' })

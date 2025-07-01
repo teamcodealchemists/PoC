@@ -6,7 +6,6 @@ export class ConcreteExternalOrder extends GeneralOrder {
     orderState : OrderState,
     creationDate : Date,
     timeToArrive : Date,
-    products: ProductQuantity[],
     public warehouseDeparture : number,
     public externalAddress : number
   ) {
@@ -14,7 +13,6 @@ export class ConcreteExternalOrder extends GeneralOrder {
       orderID,
       orderState,
       creationDate,
-      timeToArrive,
-      products);
+      timeToArrive);
   }
 }

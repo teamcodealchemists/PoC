@@ -58,7 +58,6 @@ export class ExternalOrderRepositoryMongo implements OrderRepository {
       doc.orderState,
       doc.creationDate,
       doc.timeToArrive,
-      doc.products,
       doc.warehouseDeparture,
       doc.externalAddress
     );
