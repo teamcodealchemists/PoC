@@ -7,5 +7,6 @@ export class Inventory {
     public  quantity: number,
     public readonly minQuantity?: number,
     public readonly maxQuantity?: number,
+    public readonly warehouseId?: string,
   ) {}
 }

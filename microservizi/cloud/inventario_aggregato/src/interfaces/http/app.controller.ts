@@ -17,14 +17,19 @@ export class AppController {
     return `Ciao! Sono il servizio di aggregazione Cloud!`;
   }
 
-  @Get('prodotto/:codice')
-  findProduct(@Param('codice') codice: string) {
-    return this.appService.findProduct(codice);
+  @Get('findAllProduct')
+  findAllProduct() {
+    return this.appService.findAllProduct();
   }
 
   @Get('inventario')
   getInventory() {
     return this.appService.getInventory();
+  }
+
+  @Get('findAll')
+  async findAll() {
+    return this.appService.findAll();
   }
 
 }

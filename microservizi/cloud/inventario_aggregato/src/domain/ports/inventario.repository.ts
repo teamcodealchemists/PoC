@@ -5,7 +5,7 @@ import { StockAddedDto } from 'src/events/Dtos/StockAddedDto';
 
 export interface InventoryRepository {
   findAll(): Promise<Inventory[]>;
-  findByBarCode(code: string): Promise<Inventory | null>;
+  findAllProduct(): Promise<Inventory[]>;
   stockAdded(stock: StockAddedDto);
   stockRemoved(stock: StockRemovedDto);
 }

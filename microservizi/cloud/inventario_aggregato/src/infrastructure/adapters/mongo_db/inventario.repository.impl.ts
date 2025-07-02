@@ -2,10 +2,7 @@ import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { InventoryRepository } from '../../../domain/ports/inventario.repository';
 import { Inventory } from '../../../domain/models/inventario.model';
-// import {
-//   InventoryDocument,
-//   CloudInventoryMongo,
-// } from '../../schemas/inventario.schema';
+
 import { Injectable } from '@nestjs/common';
 
 import { StockAddedDto } from 'src/events/Dtos/StockAddedDto';
@@ -23,12 +20,9 @@ export class InventoryRepositoryMongo implements InventoryRepository {
     private readonly productInWarehouseModel: Model<ProductInWarehouse>,
   ) {}
 
-  async findAll(): Promise<Inventory[]> {
+async findAll(): Promise<Inventory[]> {     //TODO: da capire se è necessario: una visualizzazione di tutto serve?
     const results_product = await this.productTableModel.find().exec();
     const results_warehouse = await this.productInWarehouseModel.find().exec();
-    console.log('Results from product table:');
-    console.log(results_product);
-    console.log(results_warehouse);
 
     results_product.map((doc) => ({
       barCode: doc.barCode,
@@ -36,82 +30,76 @@ export class InventoryRepositoryMongo implements InventoryRepository {
       unitaryPrice: doc.unitaryPrice,
     }));
 
-    return new Promise((resolve) => {
-      const inventory: Inventory[] = [];
-      results_product.forEach((product) => {
-        const warehouse = results_warehouse.find(
-          (wh) => wh.barCode === product.barCode,
-        );
-        if (warehouse) {
+    results_warehouse.map((doc) => ({
+      warehouseId: doc.warehouseId,
+      barCode: doc.barCode,
+      quantity: doc.quantity,
+      minQuantity: doc.minQuantity,
+      maxQuantity: doc.maxQuantity,
+    }));
+    const inventory: Inventory[] = [];
+    results_product.forEach((product) => {
+      for (let i=0; i < results_warehouse.length; i++) {
+
+        if (results_warehouse[i].barCode == product.barCode) {
+          const warehouse = results_warehouse[i];
           inventory.push({
             barCode: product.barCode,
+            warehouseId: warehouse.warehouseId, // Aggiunto per includere l'ID del magazzino
             productName: product.productName,
             unitaryPrice: product.unitaryPrice,
             quantity: warehouse.quantity,
             minQuantity: warehouse.minQuantity,
             maxQuantity: warehouse.maxQuantity,
           });
-        } else {
-          inventory.push({
-            barCode: product.barCode,
-            productName: product.productName,
-            unitaryPrice: product.unitaryPrice,
-            quantity: 0, // Default value if not found in warehouse
-            minQuantity: 0, // Default value if not found in warehouse
-            maxQuantity: 0, // Default value if not found in warehouse
-          });
         }
-      });
-      resolve(inventory);
+      }
     });
-
-    // results_warehouse.map((doc) => ({
-    //   barCode: doc.barCode,
-    //   quantity: doc.quantity,
-    //   minQuantity: doc.minQuantity,
-    //   maxQuantity: doc.maxQuantity,
-    // }));
-    // const inventory: Inventory[] = [];
-    // results_product.forEach((product) => {
-    //   const warehouse = results_warehouse.find(
-    //     (wh) => wh.barCode === product.barCode,
-    //   );
-    //   if (warehouse) {
-    //     inventory.push({
-    //       barCode: product.barCode,
-    //       productName: product.productName,
-    //       unitaryPrice: product.unitaryPrice,
-    //       quantity: warehouse.quantity,
-    //       minQuantity: warehouse.minQuantity,
-    //       maxQuantity: warehouse.maxQuantity,
-    //     });
-    //   } else {
-    //     inventory.push({
-    //       barCode: product.barCode,
-    //       productName: product.productName,
-    //       unitaryPrice: product.unitaryPrice,
-    //       quantity: 0, // Default value if not found in warehouse
-    //       minQuantity: 0, // Default value if not found in warehouse
-    //       maxQuantity: 0, // Default value if not found in warehouse
-    //     });
-    //   }
-    // }
-    // );
-    // return inventory;
+    return inventory;
   }
 
-  async findByBarCode(code: string): Promise<Inventory | null> {
-    // const result = await this.inventoryModel.findOne({ barCode: code }).exec();
-    // if (!result) return null;
-    // return {
-    //   barCode: result.barCode,
-    //   productName: result.productName,
-    //   unitaryPrice: result.unitaryPrice,
-    //   quantity: result.quantity,
-    //   minQuantity: result.minQuantity,
-    //   maxQuantity: result.maxQuantity,
-    // };
-    return null;
+  async findAllProduct(): Promise<Inventory[]> {
+    // Ottieni tutti i prodotti dalla tabella prodotti
+    const results_product = await this.productTableModel.find().exec();
+    
+    if (!results_product || results_product.length === 0) return [];
+
+    const inventory: Inventory[] = [];
+
+    // Per ogni prodotto, calcola la quantità totale in tutti i magazzini
+    for (const product of results_product) {
+      
+      const totals = await this.productInWarehouseModel.aggregate([
+        { $match: { barCode: product.barCode } },
+        { 
+          $group: { 
+            _id: null, 
+            totalQuantity: { $sum: "$quantity" }
+          } 
+        },
+        // Proiezione per selezionare solo campi specifici
+        { 
+          $project: {
+            _id: 0,
+            totalQuantity: 1
+          }
+        }
+      ]);
+
+      console.log(`Totali per il prodotto ${product.barCode}:`, totals);
+
+      const aggregatedData = totals.length > 0 ? totals[0] : { totalQuantity: 0 };
+
+      inventory.push({
+        barCode: product.barCode,
+        productName: product.productName,
+        unitaryPrice: product.unitaryPrice,
+        quantity: aggregatedData.totalQuantity,
+      });
+    }
+    console.log('Inventory:', inventory);
+
+    return inventory;
   }
 
   async stockAdded(stock: StockAddedDto) {
@@ -129,8 +117,8 @@ export class InventoryRepositoryMongo implements InventoryRepository {
       maxQuantity: stock.maxQuantity,
     });
 
-    newStockInWarehouse.save();
-    newStock.save();
+    await newStockInWarehouse.save();
+    await newStock.save();
   }
 
   async stockRemoved(stock: StockRemovedDto): Promise<void> {

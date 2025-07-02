@@ -1,6 +1,8 @@
 import { Module } from '@nestjs/common';
 import { MongooseModule } from '@nestjs/mongoose';
 import { ConfigModule } from '@nestjs/config';
+import { AppService } from 'src/application/app.service';
+import { InventoryRepositoryMongo } from '../adapters/mongo_db/inventario.repository.impl';
 
 import {
   ProductTable,
@@ -11,6 +13,7 @@ import {
   ProductInWarehouse,
   productInWarehouseSchema,
 } from '../schemas/productInWarehouse.schema';
+import { AppController } from 'src/interfaces/http/app.controller';
 
 @Module({
   imports: [
@@ -29,7 +32,10 @@ import {
       },
     ]),
   ],
-  controllers: [],
-  providers: [],
+  controllers: [AppController],
+  providers: [
+    AppService,
+        { provide: 'InventoryRepository', useClass: InventoryRepositoryMongo },
+  ],
 })
 export class MongoModule {}

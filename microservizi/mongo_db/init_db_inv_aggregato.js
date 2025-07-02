@@ -7,21 +7,21 @@ db.createCollection("productTable");
 db.productTable.insertMany([
     { 
         barCode: 10,
-        name: "Mouse",
-        unitPrice: 15.99
+        productName: "Mouse",
+        unitaryPrice: 15.99
     },
     {       
         barCode: 20,
-        name: "Penna",
-        unitPrice: 0.99
+        productName: "Penna",
+        unitaryPrice: 0.99
     }
 ]);
 
 
-db.createCollection("productInWareHouse");
+db.createCollection("productInWarehouse");
 
-// Inserimento diretto nella collezione `productInWareHouse`
-db.productInWareHouse.insertMany([
+// Inserimento diretto nella collezione `productInWarehouse`
+db.productInWarehouse.insertMany([
     { 
         warehouseId: 1,
         barCode: 10,
@@ -29,9 +29,16 @@ db.productInWareHouse.insertMany([
         minQuantity: 10,
         maxQuantity: 100
     },
+        { 
+        warehouseId: 2,
+        barCode: 10,
+        quantity: 80,
+        minQuantity:30,
+        maxQuantity: 120
+    },
     {       
-        barCode: 20,
         warehouseId: 1,
+        barCode: 20,
         quantity: 200,
         minQuantity: 50,
         maxQuantity: 500

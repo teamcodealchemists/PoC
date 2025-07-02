@@ -12,11 +12,15 @@ export class AppService {
     private readonly inventoryRepo: InventoryRepository,
   ) {}
 
-  async findProduct(barCode: string) {
-    return this.inventoryRepo.findByBarCode(barCode);
+  async findAllProduct() {
+    return this.inventoryRepo.findAllProduct();
   }
 
   async getInventory() {
+    return this.inventoryRepo.findAll();
+  }
+
+  async findAll() {
     return this.inventoryRepo.findAll();
   }
 }
