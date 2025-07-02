@@ -7,8 +7,6 @@ import {
   Body 
 } from '@nestjs/common';
 
-import { OrderState } from '../../domain/core/orderState.enum';
-
 import { OrderHandlerService } from '../../application/OrderHandler.service';
 
 import { ConcreteInternalOrder } from '../../domain/core/concreteInternalOrder';
@@ -16,6 +14,8 @@ import { ConcreteExternalOrder } from '../../domain/core/concreteExternalOrder';
 
 import { AddInternalOrderDto } from './dto/addInternalOrder.dto';
 import { AddExternalOrderDto } from './dto/addExternalOrder.dto';
+import { IdDto } from './dto/id.dto';
+import { OrderStateDto } from './dto/orderState.dto';
 
 @Controller('orders')
 export class OrderController {
@@ -35,18 +35,18 @@ export class OrderController {
   }
 
   @Get('internal/:id')
-  async getInternalOrder(@Param('id') id: string) {
-    return this.orderHandler.getInternalOrder(Number(id));
+  async getInternalOrder(@Param() idDto: IdDto) {
+    return this.orderHandler.getInternalOrder(idDto);
   }
 
   @Get('external/:id')
-  async getExternalOrder(@Param('id') id: string) {
-    return this.orderHandler.getExternalOrder(Number(id));
+  async getExternalOrder (@Param() idDto: IdDto) {
+    return this.orderHandler.getExternalOrder(idDto);
   }
 
-  @Get('details/:orderID')
-  async getOrderDetails(@Param('orderID') orderID: string) {
-    return this.orderHandler.getOrderDetails(Number(orderID));
+  @Get('details/:id')
+  async getOrderDetails(@Param() idDto: IdDto) {
+    return this.orderHandler.getOrderDetails((idDto));
   }
 
 
@@ -62,29 +62,29 @@ export class OrderController {
 
 
   @Patch('internal/:id/cancel')
-  async cancelInternalOrder(@Param('id') id: string) {
-    return this.orderHandler.cancelInternalOrder(Number(id));
+  async cancelInternalOrder(@Param() idDto: IdDto) {
+    return this.orderHandler.cancelInternalOrder(idDto);
   }
 
   @Patch('external/:id/cancel')
-  async cancelExternalOrder(@Param('id') id: string) {
-    return this.orderHandler.cancelExternalOrder(Number(id));
+  async cancelExternalOrder(@Param() idDto: IdDto) {
+    return this.orderHandler.cancelExternalOrder(idDto);
   }
 
   @Patch('internal/:id/state')
   async setInternalOrderState(
-    @Param('id') id: string,
-    @Body() body: { newState: OrderState }
+    @Param() idDto: IdDto,
+    @Body() orderStateDto: OrderStateDto
   ) {
-    return this.orderHandler.setInternalOrderState(Number(id), body.newState);
+    return this.orderHandler.setInternalOrderState(idDto, orderStateDto);
   }
 
   @Patch('external/:id/state')
   async setExternalOrderState(
-    @Param('id') id: string,
-    @Body() body: { newState: OrderState }
+    @Param() idDto: IdDto,
+    @Body()  orderStateDto: OrderStateDto
   ) {
-    return this.orderHandler.setExternalOrderState(Number(id), body.newState);
+    return this.orderHandler.setExternalOrderState(idDto, orderStateDto);
   }
 }
 

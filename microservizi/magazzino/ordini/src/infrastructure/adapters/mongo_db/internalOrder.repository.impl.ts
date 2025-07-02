@@ -41,6 +41,7 @@ export class InternalOrderRepositoryMongo implements OrderRepository {
   }
 
   async setOrderState(orderId: number, newState: OrderState): Promise<boolean> {
+    console.log('Tentativo di aggiornamento:', orderId, newState);
     const result = await this.orderModel.updateOne(
       { orderID: orderId },
       { orderState: newState }

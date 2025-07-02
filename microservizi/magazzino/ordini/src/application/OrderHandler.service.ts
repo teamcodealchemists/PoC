@@ -6,11 +6,13 @@ import { OrderDetailRepositoryMongo } from '../infrastructure/adapters/mongo_db/
 
 import { AddInternalOrderDto } from '../interfaces/http/dto/addInternalOrder.dto';
 import { AddExternalOrderDto } from '../interfaces/http/dto/addExternalOrder.dto';
+import { IdDto } from '../interfaces/http/dto/id.dto';
+import { OrderStateDto } from '../interfaces/http/dto/orderState.dto';
+
 
 import { ConcreteInternalOrder } from '../domain/core/concreteInternalOrder';
 import { ConcreteExternalOrder } from '../domain/core/concreteExternalOrder';
 
-import { OrderState } from '../domain/core/orderState.enum';
 
 @Injectable()
 export class OrderHandlerService {
@@ -28,16 +30,16 @@ export class OrderHandlerService {
     return this.externalOrderRepo.getAllOrders();
   }
 
-  async getInternalOrder(id: number) {
-    return this.internalOrderRepo.getOrder(id);
+  async getInternalOrder(idDto: IdDto) {
+    return this.internalOrderRepo.getOrder(idDto.id);
   }
 
-  async getExternalOrder(id: number) {
-    return this.externalOrderRepo.getOrder(id);
+  async getExternalOrder(idDto: IdDto) {
+    return this.externalOrderRepo.getOrder(idDto.id);
   }
 
-  async getOrderDetails(orderID: number) {
-    return this.orderDetailRepo.findByOrderId(orderID);
+  async getOrderDetails(idDto: IdDto) {
+    return this.orderDetailRepo.findByOrderId(idDto.id);
   }
 
 async insertInternalOrder(order: AddInternalOrderDto) {
@@ -88,19 +90,19 @@ async insertInternalOrder(order: AddInternalOrderDto) {
     return this.externalOrderRepo.insertOrder(concreteOrder);
   }
 
-  async cancelInternalOrder(id: number) {
-    return this.internalOrderRepo.cancelOrder(id);
+  async cancelInternalOrder(idDto: IdDto) {
+    return this.internalOrderRepo.cancelOrder(idDto.id);
   }
 
-  async cancelExternalOrder(id: number) {
-    return this.externalOrderRepo.cancelOrder(id);
+  async cancelExternalOrder(idDto: IdDto) {
+    return this.externalOrderRepo.cancelOrder(idDto.id);
   }
 
-  async setInternalOrderState(id: number, newState: OrderState) {
-    return this.internalOrderRepo.setOrderState(id, newState);
+  async setInternalOrderState(idDto: IdDto, orderStateDto: OrderStateDto) {
+    return this.internalOrderRepo.setOrderState(idDto.id, orderStateDto.newState);
   }
 
-  async setExternalOrderState(id: number, newState: OrderState) {
-    return this.externalOrderRepo.setOrderState(id, newState);
+  async setExternalOrderState(idDto: IdDto, orderStateDto: OrderStateDto) {
+    return this.externalOrderRepo.setOrderState(idDto.id, orderStateDto.newState);
   }
 }
