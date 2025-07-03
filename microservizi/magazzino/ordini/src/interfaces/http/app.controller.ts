@@ -60,17 +60,6 @@ export class OrderController {
     return this.orderHandler.insertExternalOrder(order);
   }
 
-
-  @Patch('internal/:id/cancel')
-  async cancelInternalOrder(@Param() idDto: IdDto) {
-    return this.orderHandler.cancelInternalOrder(idDto);
-  }
-
-  @Patch('external/:id/cancel')
-  async cancelExternalOrder(@Param() idDto: IdDto) {
-    return this.orderHandler.cancelExternalOrder(idDto);
-  }
-
   @Patch('internal/:id/state')
   async setInternalOrderState(
     @Param() idDto: IdDto,

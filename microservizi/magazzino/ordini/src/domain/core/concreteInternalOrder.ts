@@ -15,4 +15,9 @@ export class ConcreteInternalOrder extends GeneralOrder {
       creationDate,
       timeToArrive);
   }
+
+  public getOrderState(): OrderState {
+  return this.orderState;
+  }
+
 }

@@ -28,20 +28,12 @@ export class InternalOrderRepositoryMongo implements OrderRepository {
     const order = await this.orderModel.findOne({ orderID: orderId }).exec();
     if (!order) return false;
 
-    if (
-      order.orderState === OrderState.PENDING ||
-      order.orderState === OrderState.PROCESSING
-    ) {
-      order.orderState = OrderState.CANCELLED;
-      await order.save();
-      return true;
-    }
-
-    return false;
+    order.orderState = OrderState.CANCELLED;
+    await order.save();
+    return true;
   }
 
   async setOrderState(orderId: number, newState: OrderState): Promise<boolean> {
-    console.log('Tentativo di aggiornamento:', orderId, newState);
     const result = await this.orderModel.updateOne(
       { orderID: orderId },
       { orderState: newState }
