@@ -10,11 +10,11 @@ import {
   Body,
   Inject 
 } from '@nestjs/common';
-
-import { OrderState } from '../../domain/core/orderState.enum';
 import { OrderHandlerService } from '../../application/OrderHandler.service';
 import { AddInternalOrderDto } from './dto/addInternalOrder.dto';
 import { AddExternalOrderDto } from './dto/addExternalOrder.dto';
+import { IdDto } from './dto/id.dto';
+import { OrderStateDto } from './dto/orderState.dto';
 import { ClientProxy, MessagePattern, Payload } from '@nestjs/microservices';
 
 // Controller principale per la gestione degli ordini
@@ -42,20 +42,20 @@ export class OrderController {
 
   // Recupera un ordine interno tramite ID
   @MessagePattern({ cmd: `getInternalOrderById.${process.env.WAREHOUSE_ID}` })
-  async getInternalOrder(@Payload() orderId: string) {
-    return this.orderHandler.getInternalOrder(Number(orderId));
+  async getInternalOrder(@Payload() orderId: IdDto) {
+    return this.orderHandler.getInternalOrder(orderId);
   }
 
   // Recupera un ordine esterno tramite ID
   @MessagePattern({ cmd: `getExternalOrderById.${process.env.WAREHOUSE_ID}` })
-  async getExternalOrder(@Payload() orderId: string) {
-    return this.orderHandler.getExternalOrder(Number(orderId));
+  async getExternalOrder(@Payload() orderId: IdDto) {
+    return this.orderHandler.getExternalOrder(orderId);
   }
 
   // Recupera i dettagli di un ordine (interno o esterno)
   @MessagePattern({ cmd: `getOrderDetails.${process.env.WAREHOUSE_ID}` })
-  async getOrderDetails(@Payload() orderId: string) {
-    return this.orderHandler.getOrderDetails(Number(orderId));
+  async getOrderDetails(@Payload() orderId: IdDto) {
+    return this.orderHandler.getOrderDetails(orderId);
   }
 
   // =====================
@@ -74,42 +74,21 @@ export class OrderController {
     return this.orderHandler.insertExternalOrder(order);
   }
 
-  // =====================
-  // FUNZIONI DI CANCELLAZIONE
-  // =====================
-
-  // Cancella un ordine interno tramite ID
-  @MessagePattern({ cmd: `cancelInternalOrder.${process.env.WAREHOUSE_ID}` })
-  async cancelInternalOrder(@Payload() orderId: string) {
-    return this.orderHandler.cancelInternalOrder(Number(orderId));
-  }
-
-  // Cancella un ordine esterno tramite ID
-  @MessagePattern({ cmd: `cancelExternalOrder.${process.env.WAREHOUSE_ID}` })
-  async cancelExternalOrder(@Payload() orderId: string) {
-    return this.orderHandler.cancelExternalOrder(Number(orderId));
-  }
-
-  // =====================
-  // FUNZIONI DI AGGIORNAMENTO STATO
-  // =====================
-
-  // Aggiorna lo stato di un ordine interno
-  @MessagePattern({ cmd: `setInternalOrderState.${process.env.WAREHOUSE_ID}` })
+  @Patch('internal/:id/state')
   async setInternalOrderState(
-    @Payload('id') id: string,
-    @Payload('newState') newState: OrderState
+    @Param() idDto: IdDto,
+    @Body() orderStateDto: OrderStateDto
   ) {
-    return this.orderHandler.setInternalOrderState(Number(id), newState);
+    return this.orderHandler.setInternalOrderState(idDto, orderStateDto);
   }
 
   // Aggiorna lo stato di un ordine esterno
-  @MessagePattern({ cmd: `setExternalOrderState.${process.env.WAREHOUSE_ID}` })
+  @Patch('external/:id/state')
   async setExternalOrderState(
-    @Payload('id') id: string,
-    @Payload('newState') newState: OrderState
+    @Param() idDto: IdDto,
+    @Body()  orderStateDto: OrderStateDto
   ) {
-    return this.orderHandler.setExternalOrderState(Number(id), newState);
+    return this.orderHandler.setExternalOrderState(idDto, orderStateDto);
   }
 }
 

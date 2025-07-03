@@ -28,16 +28,9 @@ export class ExternalOrderRepositoryMongo implements OrderRepository {
     const order = await this.orderModel.findOne({ orderID: orderId }).exec();
     if (!order) return false;
 
-    if (
-      order.orderState === OrderState.PENDING ||
-      order.orderState === OrderState.PROCESSING
-    ) {
-      order.orderState = OrderState.CANCELLED;
-      await order.save();
-      return true;
-    }
-
-    return false;
+    order.orderState = OrderState.CANCELLED;
+    await order.save();
+    return true;
   }
 
   async setOrderState(orderId: number, newState: OrderState): Promise<boolean> {
@@ -52,6 +45,7 @@ export class ExternalOrderRepositoryMongo implements OrderRepository {
     const docs = await this.orderModel.find().exec();
     return docs.map(doc => this.toDomain(doc));
   }
+  
   private toDomain(doc: ExternalOrderDocument): ConcreteExternalOrder {
     return new ConcreteExternalOrder(
       doc.orderID,

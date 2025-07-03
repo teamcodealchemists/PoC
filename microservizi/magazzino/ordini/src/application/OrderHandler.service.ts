@@ -6,10 +6,12 @@ import { OrderDetailRepositoryMongo } from '../infrastructure/adapters/mongo_db/
 
 import { AddInternalOrderDto } from '../interfaces/http/dto/addInternalOrder.dto';
 import { AddExternalOrderDto } from '../interfaces/http/dto/addExternalOrder.dto';
+import { IdDto } from '../interfaces/http/dto/id.dto';
+import { OrderStateDto } from '../interfaces/http/dto/orderState.dto';
+
 
 import { ConcreteInternalOrder } from '../domain/core/concreteInternalOrder';
 import { ConcreteExternalOrder } from '../domain/core/concreteExternalOrder';
-
 import { OrderState } from '../domain/core/orderState.enum';
 
 @Injectable()
@@ -28,41 +30,41 @@ export class OrderHandlerService {
     return this.externalOrderRepo.getAllOrders();
   }
 
-  async getInternalOrder(id: number) {
-    return this.internalOrderRepo.getOrder(id);
+  async getInternalOrder(idDto: IdDto) {
+    return this.internalOrderRepo.getOrder(idDto.id);
   }
 
-  async getExternalOrder(id: number) {
-    return this.externalOrderRepo.getOrder(id);
+  async getExternalOrder(idDto: IdDto) {
+    return this.externalOrderRepo.getOrder(idDto.id);
   }
 
-  async getOrderDetails(orderID: number) {
-    return this.orderDetailRepo.findByOrderId(orderID);
+  async getOrderDetails(idDto: IdDto) {
+    return this.orderDetailRepo.findByOrderId(idDto.id);
   }
 
-async insertInternalOrder(order: AddInternalOrderDto) {
-  // Salva i dettagli prodotti in orderDetails
-  if (order.orderDetails && order.orderDetails.length > 0) {
-    const details = order.orderDetails.map((d) => ({
-      orderID: order.orderID,
-      idProduct: d.idProduct,
-      nameProduct: d.nameProduct,
-      quantity: d.quantity,
-      unitaryPrice: d.unitaryPrice,
-    }));
-    await this.orderDetailRepo.insertMany(details);
+  async insertInternalOrder(order: AddInternalOrderDto) {
+    // Salva i dettagli prodotti in orderDetails
+    if (order.orderDetails && order.orderDetails.length > 0) {
+      const details = order.orderDetails.map((d) => ({
+        orderID: order.orderID,
+        idProduct: d.idProduct,
+        nameProduct: d.nameProduct,
+        quantity: d.quantity,
+        unitaryPrice: d.unitaryPrice,
+      }));
+      await this.orderDetailRepo.insertMany(details);
+    }
+    // Salva l'ordine in internalOrders
+    const concreteOrder = new ConcreteInternalOrder(
+      order.orderID,
+      order.orderState,
+      order.creationDate,
+      order.timeToArrive,
+      order.warehouseDestination,
+      order.warehouseDeparture
+    );
+    return this.internalOrderRepo.insertOrder(concreteOrder);
   }
-  // Salva l'ordine in internalOrders
-  const concreteOrder = new ConcreteInternalOrder(
-    order.orderID,
-    order.orderState,
-    order.creationDate,
-    order.timeToArrive,
-    order.warehouseDestination,
-    order.warehouseDeparture
-  );
-  return this.internalOrderRepo.insertOrder(concreteOrder);
-}
 
   async insertExternalOrder(order: AddExternalOrderDto) {
     // Salva i dettagli prodotti in orderDetails
@@ -88,19 +90,43 @@ async insertInternalOrder(order: AddInternalOrderDto) {
     return this.externalOrderRepo.insertOrder(concreteOrder);
   }
 
-  async cancelInternalOrder(id: number) {
-    return this.internalOrderRepo.cancelOrder(id);
+  async setInternalOrderState(idDto: IdDto, orderStateDto: OrderStateDto): Promise<boolean> {
+    const order = await this.internalOrderRepo.getOrder(idDto.id);
+    if (!order) return false;
+    
+    const currentState = order.getOrderState();
+    const newState = orderStateDto.newState;
+
+    // Logica di transizione tra stati accettata
+    if (
+      (currentState === OrderState.PENDING && (newState === OrderState.PROCESSING || newState === OrderState.CANCELLED)) ||
+      (currentState === OrderState.PROCESSING && (newState === OrderState.SHIPPED || newState === OrderState.CANCELLED)) ||
+      (currentState === OrderState.SHIPPED && (newState === OrderState.DELIVERED || newState === OrderState.CANCELLED))
+    ) {
+      return this.internalOrderRepo.setOrderState(idDto.id, newState);
+    }
+
+    // Non puoi cambiare stato da DELIVERED o CANCELLED, o transizione non valida
+    return false;
   }
 
-  async cancelExternalOrder(id: number) {
-    return this.externalOrderRepo.cancelOrder(id);
-  }
+  async setExternalOrderState(idDto: IdDto, orderStateDto: OrderStateDto): Promise<boolean> {
+    const order = await this.externalOrderRepo.getOrder(idDto.id);
+    if (!order) return false;
 
-  async setInternalOrderState(id: number, newState: OrderState) {
-    return this.internalOrderRepo.setOrderState(id, newState);
-  }
+    const currentState = order.getOrderState();
+    const newState = orderStateDto.newState;
 
-  async setExternalOrderState(id: number, newState: OrderState) {
-    return this.externalOrderRepo.setOrderState(id, newState);
+    // Logica di transizione tra stati accettata
+    if (
+      (currentState === OrderState.PENDING && (newState === OrderState.PROCESSING || newState === OrderState.CANCELLED)) ||
+      (currentState === OrderState.PROCESSING && (newState === OrderState.SHIPPED || newState === OrderState.CANCELLED)) ||
+      (currentState === OrderState.SHIPPED && (newState === OrderState.DELIVERED || newState === OrderState.CANCELLED))
+    ) {
+      return this.externalOrderRepo.setOrderState(idDto.id, newState);
+    }
+
+    // Non puoi cambiare stato da DELIVERED o CANCELLED, o transizione non valida
+    return false;
   }
 }
