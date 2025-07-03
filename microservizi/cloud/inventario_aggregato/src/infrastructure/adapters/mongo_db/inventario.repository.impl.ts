@@ -68,13 +68,10 @@ export class InventoryRepositoryMongo implements InventoryRepository {
       },
     ]);
 
-    console.log('Quantità totali per barCode:', quantities);
-
     const quantityMap = new Map<string, number>();
     for (const item of quantities) {
       quantityMap.set(String(item._id), item.totalQuantity);
     }
-    console.log('Mappa delle quantità:', quantityMap);
 
     const products = await this.productTableModel.find().exec();
 
