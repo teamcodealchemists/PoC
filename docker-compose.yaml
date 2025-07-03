@@ -16,6 +16,7 @@ services:
       - ./microservizi/magazzino/inventario/src:/usr/src/app/src
     depends_on:
       - mongo
+      - nats
 
   ordini:
     container_name: ordini
@@ -28,12 +29,13 @@ services:
       - net-magazzino
     environment:
       - PORT=3000
-      - ID_MAGAZZINO=1
+      - WAREHOUSE_ID=1
       - MONGO_URL=mongodb://mongo:27017/inventory
     volumes:
       - ./microservizi/magazzino/ordini/src:/usr/src/app/src
     depends_on:
       - mongo
+      - nats
 
   mongo:
     image: mongo:latest
@@ -43,7 +45,7 @@ services:
     networks:
       - net-magazzino
     volumes:
-      - ./microservizi/magazzino/mongo_db:/docker-entrypoint-initdb.d
+      - ./microservizi/mongo_db:/docker-entrypoint-initdb.d
 
   nats:
      container_name: nats
@@ -52,6 +54,8 @@ services:
        - "4222:4222"
      command:
        - "--jetstream"
+       - "--debug"
+       - "--trace"
      networks:
        - net-magazzino
 
@@ -71,27 +75,9 @@ services:
       - ./microservizi/api_gateway:/usr/src/app/src
     depends_on:
       - inventario
+      - ordini
       - nats
 
 networks:
   net-magazzino:    
     driver: bridge
-
-  #--------------------------------------#
-
-  # inventario-a:
-  #   build: ./MagazzinoA/inventario-a
-  #   image: swe/inventario-a
-  #   ports:
-  #     - "8080:3000"
-  #   networks:
-  #     - net-magazzino
-  # ordini-a:
-  #   build: ./MagazzinoA/ordini-a
-  #   image: swe/ordini-a
-  #   ports:
-  #     - "8081:3000"
-  #   networks:
-  #     - net-magazzino
-
-

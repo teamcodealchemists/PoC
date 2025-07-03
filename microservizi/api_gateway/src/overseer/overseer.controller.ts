@@ -9,17 +9,26 @@ import {
     HttpException
 } from '@nestjs/common';
 import { ClientProxy } from '@nestjs/microservices';
+
+// Import dei DTO necessari per le operazioni
 import { IdDto } from './dto/productId.dto';
 import { AddProductDto } from './dto/addProduct.dto';
 import { EditProductDto } from './dto/editProduct.dto';
 import { WarehouseIdDto } from './dto/warehouseId.dto';
 import { lastValueFrom } from 'rxjs';
+import { AddInternalOrderDto } from './dto/addInternalOrder.dto';
+import { AddExternalOrderDto } from './dto/addExternalOrder.dto';
 
 
 @Controller()
 export class OverseerController {
     constructor(@Inject('natsService') private natsClient: ClientProxy) { }
 
+    //------------------------------------------
+    //
+    // API relative alla gestione dell'INVENTARIO dei magazzini
+    //
+    //------------------------------------------
 
     //TODO: Rimuove in quanto noi controlliamo a livello aggregato e non nel singolo magazzino (Solo test per ora)
     @Get('product/:productId')
@@ -70,4 +79,102 @@ export class OverseerController {
             }
         }
     }
+
+    //------------------------------------------
+    //
+    // API relative alla gestione degli ORDINI dei magazzini
+    //
+    //------------------------------------------
+
+    //TODO: Rimuovere get per quando avremo gli ordini aggregati
+
+    //------------------DA RIMUOVERE IN RELEASE------------------------------------------------------------------------------------------------------------------------
+
+    @Get('getInternalOrders/:warehouseId')
+    async getInternalOrders(@Param() warehouseId: WarehouseIdDto) {
+        const pattern = { cmd: `getInternalOrders.${warehouseId.warehouseId}` };
+        console.log(pattern);
+        try {
+            return await lastValueFrom(this.natsClient.send(pattern, {}));
+        } catch (error) {
+            throw new HttpException(error?.message || 'Error fetching internal orders', error?.code || 500);
+        }
+    }
+
+    @Get('getExternalOrders/:warehouseId')
+    async getExternalOrders(@Param() warehouseId: WarehouseIdDto) {
+        const pattern = { cmd: `getExternalOrders.${warehouseId.warehouseId}` };
+        try {
+            return await lastValueFrom(this.natsClient.send(pattern, {}));
+        } catch (error) {
+            throw new HttpException(error?.message || 'Error fetching external orders', error?.code || 500);
+        }
+    }
+
+    @Get('getInternalOrderById/:warehouseId/:orderId')
+    async getInternalOrderById(
+        @Param('warehouseId') warehouseId: string,
+        @Param('orderId') orderId: string
+    ) {
+        const pattern = { cmd: `getInternalOrderById.${warehouseId}` };
+        try {
+            return await lastValueFrom(this.natsClient.send(pattern, orderId));
+        } catch (error) {
+            throw new HttpException(error?.message || 'Error fetching internal order', error?.code || 500);
+        }
+    }
+
+    @Get('getExternalOrderById/:warehouseId/:orderId')
+    async getExternalOrderById(
+        @Param('warehouseId') warehouseId: string,
+        @Param('orderId') orderId: string
+    ) {
+        const pattern = { cmd: `getExternalOrderById.${warehouseId}` };
+        try {
+            return await lastValueFrom(this.natsClient.send(pattern, orderId));
+        } catch (error) {
+            throw new HttpException(error?.message || 'Error fetching external order', error?.code || 500);
+        }
+    }
+
+    @Get('getOrderDetails/:warehouseId/:orderId')
+    async getOrderDetails(
+        @Param('warehouseId') warehouseId: string,
+        @Param('orderId') orderId: string
+    ) {
+        const pattern = { cmd: `getOrderDetails.${warehouseId}` };
+        try {
+            return await lastValueFrom(this.natsClient.send(pattern, orderId));
+        } catch (error) {
+            throw new HttpException(error?.message || 'Error fetching order details', error?.code || 500);
+        }
+    }
+
+    //------------------------------------------------------------------------------------------------------------------------------------------
+
+    @Post('addInternalOrder')
+    async addInternalOrder(@Body() order: AddInternalOrderDto) {
+        const pattern = { cmd: `addInternalOrder.${order.warehouseDeparture}` };
+        try {
+            const response = await lastValueFrom(this.natsClient.send(pattern, order));
+            if (response?.success) return response;
+            throw new HttpException(response?.message || 'Unknown response from warehouse service', response?.code || 500);
+        } catch (error) {
+            throw new HttpException(error?.message || 'Error adding internal order', error?.code || 500);
+        }
+    }
+
+    @Post('addExternalOrder')
+    async addExternalOrder(@Body() order: AddExternalOrderDto) {
+        const pattern = { cmd: `addExternalOrder.${order.warehouseDeparture}` };
+        try {
+            const response = await lastValueFrom(this.natsClient.send(pattern, order));
+            if (response?.success) return response;
+            throw new HttpException(response?.message || 'Unknown response from warehouse service', response?.code || 500);
+        } catch (error) {
+            throw new HttpException(error?.message || 'Error adding external order', error?.code || 500);
+        }
+    }
+
+    
 }

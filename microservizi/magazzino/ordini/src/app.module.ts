@@ -14,8 +14,12 @@ import { InternalOrderRepositoryMongo } from './infrastructure/adapters/mongo_db
 import { ExternalOrderRepositoryMongo } from './infrastructure/adapters/mongo_db/externalOrder.repository.impl';
 import { OrderDetailRepositoryMongo } from './infrastructure/adapters/mongo_db/orderDetail.repository.impl';
 
+//NATS Client
+import { NatsClientModule } from './nats-client/natsClient.module';
+
 @Module({
   imports: [
+    NatsClientModule,
     MongooseModule.forRoot('mongodb://mongo:27017/orders', {
       connectionName: 'orders',
     }),
