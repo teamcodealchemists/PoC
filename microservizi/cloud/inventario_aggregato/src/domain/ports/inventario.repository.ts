@@ -8,4 +8,7 @@ export interface InventoryRepository {
   findAllProduct(): Promise<Inventory[]>;
   stockAdded(stock: StockAddedDto);
   stockRemoved(stock: StockRemovedDto);
+  syncAddStock(stock: StockAddedDto): Promise<void>;
+  syncRemoveStock(stock: StockRemovedDto): Promise<void>;
+  syncEditStock(stock: StockAddedDto): Promise<void>;
 }

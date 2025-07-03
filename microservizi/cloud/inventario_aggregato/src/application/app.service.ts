@@ -23,5 +23,17 @@ export class AppService {
   async findAll() {
     return this.inventoryRepo.findAll();
   }
+
+  async syncAddStock(stock: any) {
+    return this.inventoryRepo.syncAddStock(stock);
+  }
+
+  async syncRemoveStock(stock: any) {
+    return this.inventoryRepo.syncRemoveStock(stock);
+  }
+
+  async syncEditStock(stock: any) {
+    return this.inventoryRepo.syncEditStock(stock);
+  }
 }
 
