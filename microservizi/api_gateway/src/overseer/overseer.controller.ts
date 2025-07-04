@@ -6,12 +6,15 @@ import {
     Body,
     Get,
     Param,
-    HttpException
+    HttpException,
+    UsePipes,
+    ValidationPipe
 } from '@nestjs/common';
-import { ClientProxy } from '@nestjs/microservices';
+import { ClientProxy, Payload } from '@nestjs/microservices';
 
 // Import dei DTO necessari per le operazioni
 import { IdDto } from './dto/productId.dto';
+import { OrderStateDto } from './dto/orderState.dto';
 import { AddProductDto } from './dto/addProduct.dto';
 import { EditProductDto } from './dto/editProduct.dto';
 import { WarehouseIdDto } from './dto/warehouseId.dto';
@@ -31,11 +34,11 @@ export class OverseerController {
     //------------------------------------------
 
     //TODO: Rimuove in quanto noi controlliamo a livello aggregato e non nel singolo magazzino (Solo test per ora)
-    @Get('product/:productId')
+    @Get('product/:id')
     async getProduct(@Param() idDto: IdDto): Promise<any> {
 
         const pattern = { cmd: 'getProduct' };
-        const payload = { id: idDto.productId };
+        const payload = { id: idDto.id };
 
         try {
             return await lastValueFrom(this.natsClient.send(pattern, payload));
@@ -91,9 +94,9 @@ export class OverseerController {
     //------------------DA RIMUOVERE IN RELEASE------------------------------------------------------------------------------------------------------------------------
 
     @Get('getInternalOrders/:warehouseId')
-    async getInternalOrders(@Param() warehouseId: WarehouseIdDto) {
-        const pattern = { cmd: `getInternalOrders.${warehouseId.warehouseId}` };
-        console.log(pattern);
+    @UsePipes(new ValidationPipe({ transform: true, whitelist: true }))
+    async getInternalOrders(@Param('warehouseId') warehouseId: string) {
+        const pattern = { cmd: `getInternalOrders.${warehouseId}` };
         try {
             return await lastValueFrom(this.natsClient.send(pattern, {}));
         } catch (error) {
@@ -102,8 +105,9 @@ export class OverseerController {
     }
 
     @Get('getExternalOrders/:warehouseId')
-    async getExternalOrders(@Param() warehouseId: WarehouseIdDto) {
-        const pattern = { cmd: `getExternalOrders.${warehouseId.warehouseId}` };
+    @UsePipes(new ValidationPipe({ transform: true, whitelist: true }))
+    async getExternalOrders(@Param('warehouseId') warehouseId: string) {
+        const pattern = { cmd: `getExternalOrders.${warehouseId}` };
         try {
             return await lastValueFrom(this.natsClient.send(pattern, {}));
         } catch (error) {
@@ -111,40 +115,47 @@ export class OverseerController {
         }
     }
 
-    @Get('getInternalOrderById/:warehouseId/:orderId')
+    @Get('getInternalOrderById/:warehouseId/:id')
+    @UsePipes(new ValidationPipe({ transform: true, whitelist: true }))
     async getInternalOrderById(
         @Param('warehouseId') warehouseId: string,
-        @Param('orderId') orderId: string
+        @Param('id') id: string
     ) {
+        const idDto: IdDto = { id: Number(id) };
         const pattern = { cmd: `getInternalOrderById.${warehouseId}` };
         try {
-            return await lastValueFrom(this.natsClient.send(pattern, orderId));
+            return await lastValueFrom(this.natsClient.send(pattern, idDto));
         } catch (error) {
             throw new HttpException(error?.message || 'Error fetching internal order', error?.code || 500);
         }
     }
 
     @Get('getExternalOrderById/:warehouseId/:orderId')
+    @UsePipes(new ValidationPipe({ transform: true, whitelist: true }))
     async getExternalOrderById(
         @Param('warehouseId') warehouseId: string,
         @Param('orderId') orderId: string
     ) {
+        const idDto: IdDto = { id: Number(orderId) };
         const pattern = { cmd: `getExternalOrderById.${warehouseId}` };
         try {
-            return await lastValueFrom(this.natsClient.send(pattern, orderId));
+            return await lastValueFrom(this.natsClient.send(pattern, idDto));
         } catch (error) {
             throw new HttpException(error?.message || 'Error fetching external order', error?.code || 500);
         }
     }
 
-    @Get('getOrderDetails/:warehouseId/:orderId')
+    @Get('getOrderDetails/:warehouseId/:id')
+    @UsePipes(new ValidationPipe({ transform: true, whitelist: true }))
     async getOrderDetails(
         @Param('warehouseId') warehouseId: string,
-        @Param('orderId') orderId: string
+        @Param('id') id: string
     ) {
+        const idDto: IdDto = { id: Number(id) };
         const pattern = { cmd: `getOrderDetails.${warehouseId}` };
+        const payload = { id: idDto.id };
         try {
-            return await lastValueFrom(this.natsClient.send(pattern, orderId));
+            return await lastValueFrom(this.natsClient.send(pattern, payload));
         } catch (error) {
             throw new HttpException(error?.message || 'Error fetching order details', error?.code || 500);
         }
@@ -157,8 +168,7 @@ export class OverseerController {
         const pattern = { cmd: `addInternalOrder.${order.warehouseDeparture}` };
         try {
             const response = await lastValueFrom(this.natsClient.send(pattern, order));
-            if (response?.success) return response;
-            throw new HttpException(response?.message || 'Unknown response from warehouse service', response?.code || 500);
+            return response;
         } catch (error) {
             throw new HttpException(error?.message || 'Error adding internal order', error?.code || 500);
         }
@@ -169,12 +179,39 @@ export class OverseerController {
         const pattern = { cmd: `addExternalOrder.${order.warehouseDeparture}` };
         try {
             const response = await lastValueFrom(this.natsClient.send(pattern, order));
-            if (response?.success) return response;
-            throw new HttpException(response?.message || 'Unknown response from warehouse service', response?.code || 500);
+            return response;
         } catch (error) {
             throw new HttpException(error?.message || 'Error adding external order', error?.code || 500);
         }
     }
 
-    
+    @Patch('setInternalOrderState/:warehouseId')
+    async setInternalOrderState(
+        @Param('warehouseId') warehouseId: string,
+        @Body() data: { id: number; newState: string }
+    ) {
+        const pattern = { cmd: `setInternalOrderState.${warehouseId}` };
+        const payload = {
+            id: data.id,
+            state: data.newState
+        };
+        try {
+            return await lastValueFrom(this.natsClient.send(pattern, payload));
+        } catch (error) {
+            throw new HttpException(error?.message || 'Error setting internal order state', error?.code || 500);
+        }
+    }
+
+    @Patch('setExternalOrderState/:warehouseId')
+    async setExternalOrderState(
+        @Param('warehouseId') warehouseId: string,
+        @Body() data: { idDto: IdDto; orderStateDto: OrderStateDto }
+    ) {
+        const pattern = { cmd: `setExternalOrderState.${warehouseId}` };
+        try {
+            return await lastValueFrom(this.natsClient.send(pattern, data));
+        } catch (error) {
+            throw new HttpException(error?.message || 'Error setting external order state', error?.code || 500);
+        }
+    }
 }

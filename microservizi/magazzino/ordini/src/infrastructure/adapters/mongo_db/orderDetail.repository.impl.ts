@@ -11,6 +11,7 @@ export class OrderDetailRepositoryMongo {
   ) {}
 
   async findByOrderId(orderID: number): Promise<OrderDetailMongo[]> {
+    console.log(`Finding order details for orderID: ${orderID}`);
     return this.orderDetailModel.find({ orderID }).exec();
   }
 

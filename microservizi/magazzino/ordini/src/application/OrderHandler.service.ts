@@ -43,6 +43,45 @@ export class OrderHandlerService {
   }
 
   async insertInternalOrder(order: AddInternalOrderDto) {
+    // Check that all required fields are present
+    if (
+      !order.orderID ||
+      !order.orderState ||
+      !order.creationDate ||
+      !order.timeToArrive ||
+      !order.warehouseDestination ||
+      !order.warehouseDeparture
+    ) {
+      throw new Error('Missing or invalid internal order data');
+    }
+
+    // Check that orderDetails is a valid array if present
+    if (order.orderDetails && !Array.isArray(order.orderDetails)) {
+      throw new Error('orderDetails must be an array');
+    }
+
+    // Check that each detail has the required fields
+    if (order.orderDetails) {
+      for (const d of order.orderDetails) {
+      if (
+        !d.idProduct ||
+        !d.nameProduct ||
+        typeof d.quantity !== 'number' ||
+        typeof d.unitaryPrice !== 'number'
+      ) {
+        console.error('Invalid order detail:', d);
+        throw new Error('Missing or invalid order detail data');
+      }
+      }
+    }
+
+    const existingOrder = await this.internalOrderRepo.getOrder(order.orderID);
+    if (existingOrder) {
+      throw new Error(`Internal order with ID ${order.orderID} already exists`);
+    }
+
+    console.log('Inserting internal order with details:', order.orderDetails);
+
     // Salva i dettagli prodotti in orderDetails
     if (order.orderDetails && order.orderDetails.length > 0) {
       const details = order.orderDetails.map((d) => ({
@@ -53,6 +92,11 @@ export class OrderHandlerService {
         unitaryPrice: d.unitaryPrice,
       }));
       await this.orderDetailRepo.insertMany(details);
+      console.log('Inserted internal order details successfully:', details);
+    }
+    else {
+      console.log('No order details provided for internal order');
+      throw new Error('No order details provided for internal order');
     }
     // Salva l'ordine in internalOrders
     const concreteOrder = new ConcreteInternalOrder(

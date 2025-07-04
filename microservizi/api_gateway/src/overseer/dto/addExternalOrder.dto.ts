@@ -10,21 +10,18 @@ import {
 } from 'class-validator';
 import { Type } from 'class-transformer';
 import { OrderState } from '../../domain/core/orderState.enum';
+import { OrderDetailDto } from './OrderDetail.dto';
 
-class OrderDetailDto {
-  idProduct: number;
-  nameProduct: string;
-  quantity: number;
-  unitaryPrice: number;
-}
 
 export class AddExternalOrderDto {
 
+    @Type(() => Number)
     @IsNotEmpty()
     @IsInt()
     @IsPositive()
     orderID: number;
 
+    @Type(() => String)
     @IsNotEmpty()
     @IsEnum(OrderState, { message: 'Order state must be a valid OrderState enum value' })
     orderState: OrderState;
@@ -44,11 +41,13 @@ export class AddExternalOrderDto {
     @Type(() => OrderDetailDto)
     orderDetails: OrderDetailDto[];
 
+    @Type(() => Number)
     @IsNotEmpty()
     @IsInt()
     @IsPositive({ message: 'Warehouse departure must be a positive integer' })
     warehouseDeparture: number;
 
+    @Type(() => Number)
     @IsNotEmpty()
     @IsInt()
     @IsPositive({ message: 'External address must be a positive integer' })

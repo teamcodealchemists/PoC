@@ -5,25 +5,22 @@ import {
     IsDate, 
     IsPositive,
     IsArray,
-    ValidateNested
+    ValidateNested,
+    IsMilitaryTime
 } from 'class-validator';
 import { Type } from 'class-transformer';
 import { OrderState } from '../../domain/core/orderState.enum';
-
-class OrderDetailDto {
-  idProduct: number;
-  nameProduct: string;
-  quantity: number;
-  unitaryPrice: number;
-}
+import { OrderDetailDto } from './OrderDetail.dto';
 
 export class AddInternalOrderDto {
 
+    @Type(() => Number)  
     @IsNotEmpty()
     @IsInt()
     @IsPositive()
     orderID: number;
 
+    @Type(() => String)
     @IsNotEmpty()
     @IsEnum(OrderState, { message: 'Order state must be a valid OrderState enum value' })
     orderState: OrderState;
@@ -31,7 +28,7 @@ export class AddInternalOrderDto {
     @IsNotEmpty()
     @Type(() => Date)
     @IsDate({ message: 'Creation date must be a valid date' })
-    creationDate: Date;
+    creationDate: Date; 
 
     @IsNotEmpty()
     @Type(() => Date)
@@ -43,11 +40,13 @@ export class AddInternalOrderDto {
     @Type(() => OrderDetailDto)
     orderDetails: OrderDetailDto[];
 
+    @Type(() => Number)
     @IsNotEmpty()
     @IsInt()
     @IsPositive({ message: 'Warehouse departure must be a positive integer' })
     warehouseDeparture: number;
 
+    @Type(() => Number)
     @IsNotEmpty()
     @IsInt()
     @IsPositive({ message: 'Warehouse destination must be a positive integer' })
