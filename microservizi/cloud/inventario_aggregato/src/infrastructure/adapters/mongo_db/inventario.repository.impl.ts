@@ -135,26 +135,35 @@ export class InventoryRepositoryMongo implements InventoryRepository {
   async syncRemoveStock(stock: StockRemovedDto): Promise<void> {
     //VERSIONE ANALOGA ALLA FUNZIONE ADDSTOCK
     try {
-      // 1. Rimuovi record se quantità è zero
-      await this.productInWarehouseModel.deleteOne({
-        barCode: stock.barCode,
-        warehouseId: stock.warehouseId,
-        quantity: { $lte: 0 }
+      const deleteResult = await this.productInWarehouseModel.deleteOne({
+            barCode: stock.barCode,
+            warehouseId: stock.warehouseId,
+            quantity: { $lte: 0 } // Solo se quantità è zero o negativa
       });
 
-      // 2. Controlla se rimuovere il prodotto dalla productTable
-      const remainingStock = await this.productInWarehouseModel
-        .findOne({ barCode: stock.barCode })
-        .exec();
+      if (deleteResult.deletedCount > 0) {
+        console.log(`Record rimosso da warehouse per ${stock.barCode} in ${stock.warehouseId}`);
+      
+        const remainingStock = await this.productInWarehouseModel
+          .findOne({ barCode: stock.barCode })
+          .exec();
 
-      if (!remainingStock) {
-        await this.productTableModel.deleteOne({ barCode: stock.barCode });
-        console.log(`Prodotto ${stock.barCode} rimosso completamente (non presente in nessun magazzino)`);
+        if (!remainingStock) {
+          const productDeleteResult = await this.productTableModel.deleteOne({ 
+            barCode: stock.barCode 
+          });
+          console.log(productDeleteResult);
+        
+          if (productDeleteResult.deletedCount > 0) {
+            console.log(`Prodotto ${stock.barCode} rimosso completamente da productTable (non presente in nessun magazzino)`);
+          }
+        } 
+      }else{
+        console.log(`Prodotto ${stock.barCode} non rimosso in quanto la quantità è ancora positiva in ${stock.warehouseId}`);
       }
+    }
 
-      console.log(`Stock rimosso con successo per ${stock.barCode} da ${stock.warehouseId}`);
-
-    } catch (error) {
+    catch (error) {
       console.error('Errore durante removeStock:', error);
       throw error;
     }
@@ -185,33 +194,6 @@ export class InventoryRepositoryMongo implements InventoryRepository {
       console.error('Errore durante editStock:', error);
       throw error;
     }
-  }
-
-
-  async stockAdded(stock: StockAddedDto) {
-    const newStock = new this.productTableModel({
-      barCode: stock.barCode,
-      productName: stock.productName,
-      unitaryPrice: stock.unitaryPrice,
-    });
-
-    const newStockInWarehouse = new this.productInWarehouseModel({
-      warehouseId: stock.warehouseId,
-      barCode: stock.barCode,
-      quantity: stock.quantity,
-      minQuantity: stock.minQuantity,
-      maxQuantity: stock.maxQuantity,
-    });
-
-    await newStockInWarehouse.save();
-    await newStock.save();
-  }
-
-  async stockRemoved(stock: StockRemovedDto): Promise<void> {
-    // stock.id dovrebbe essere un composito tra warehouse id e barcode id
-    const user = await this.productInWarehouseModel
-      //.findByIdAndDelete(stock.id)
-      //.exec();
   }
 
 //   private toDomain(doc: InventoryDocument): Inventory {

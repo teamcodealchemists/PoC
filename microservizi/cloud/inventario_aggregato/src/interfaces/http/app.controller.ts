@@ -1,4 +1,4 @@
-import { Controller, Get, Param } from '@nestjs/common';
+import { Controller, Get, Post, Param, Body } from '@nestjs/common';
 import { AppService } from '../../application/app.service';
 import { StockAddedDto } from 'src/events/Dtos/StockAddedDto';
 import { StockRemovedDto } from 'src/events/Dtos/StockRemovedDto';
@@ -34,18 +34,18 @@ export class AppController {
     return this.appService.findAll();
   }
 
-  @Get('syncAddStock/:id')
-  async syncAddStock(stock: StockAddedDto) {
+  @Post('syncAddStock')
+  async syncAddStock(@Body() stock: StockAddedDto) {
     return this.appService.syncAddStock(stock);
   }
 
-  @Get('syncRemoveStock/:id')
-  async syncRemoveStock(stock: StockRemovedDto) {
+  @Post('syncRemoveStock')
+  async syncRemoveStock(@Body() stock: StockRemovedDto) {
     return this.appService.syncRemoveStock(stock);
   }
 
-  @Get('syncEditStock/:id')
-  async syncEditStock(stock: StockAddedDto) {
+  @Post('syncEditStock')
+  async syncEditStock(@Body() stock: StockAddedDto) {
     return this.appService.syncEditStock(stock);
   }
 

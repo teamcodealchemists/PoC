@@ -6,8 +6,6 @@ import { StockAddedDto } from 'src/events/Dtos/StockAddedDto';
 export interface InventoryRepository {
   findAll(): Promise<Inventory[]>;
   findAllProduct(): Promise<Inventory[]>;
-  stockAdded(stock: StockAddedDto);
-  stockRemoved(stock: StockRemovedDto);
   syncAddStock(stock: StockAddedDto): Promise<void>;
   syncRemoveStock(stock: StockRemovedDto): Promise<void>;
   syncEditStock(stock: StockAddedDto): Promise<void>;
