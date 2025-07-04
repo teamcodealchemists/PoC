@@ -12,15 +12,4 @@ export class EventsService {
     private readonly cloudInvRepo: InventoryRepository,
   ) {}
 
-  async stockAdded(stockAddedDto: StockAddedDto) {
-    console.log('stock added dto service -> ' + stockAddedDto);
-
-    this.cloudInvRepo.stockAdded(stockAddedDto);
-  }
-
-  async stockRemoved(stockRemovedDto: StockRemovedDto) {
-    console.log('stock removed dto service -> ' + stockRemovedDto);
-
-    this.cloudInvRepo.stockRemoved(stockRemovedDto);
-  }
 }

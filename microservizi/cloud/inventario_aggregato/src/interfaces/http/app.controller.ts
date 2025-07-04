@@ -2,6 +2,8 @@ import { Controller, Get, Post, Param, Body } from '@nestjs/common';
 import { AppService } from '../../application/app.service';
 import { StockAddedDto } from 'src/events/Dtos/StockAddedDto';
 import { StockRemovedDto } from 'src/events/Dtos/StockRemovedDto';
+import { SyncEventDto } from 'src/events/Dtos/SyncEventDto';
+import { EventPattern, Payload } from '@nestjs/microservices';
 // import { CreaProdottoDto } from './dto/crea-prodotto.dto';
 // import { AggiornaQuantitaDto } from './dto/aggiorna-quantita.dto'
 
@@ -45,8 +47,64 @@ export class AppController {
   }
 
   @Post('syncEditStock')
-  async syncEditStock(@Body() stock: StockAddedDto) {
+  async syncEditStock(@Body() stock: SyncEventDto) {
     return this.appService.syncEditStock(stock);
+  }
+
+  @EventPattern('stockEdited')
+  async handleStockEdited(@Payload() data: SyncEventDto) {
+    console.log(`📥 Evento stockEdited ricevuto da ${data.source}:`, {
+      barCode: data.barCode,
+      warehouseId: data.warehouseId,
+      quantity: data.quantity
+    });
+
+    try {
+      // Chiama il metodo syncEditStock esistente
+      await this.appService.syncEditStock(data);
+      
+      console.log(`✅ Stock sincronizzato nel cloud per ${data.barCode}`);
+      
+      return { 
+        success: true, 
+        message: `Stock ${data.barCode} sincronizzato`,
+        warehouseId: data.warehouseId
+      };
+    } catch (error) {
+      console.error(`❌ Errore sincronizzazione:`, error);
+      return { 
+        success: false, 
+        message: error.message 
+      };
+    }
+  }
+
+  @EventPattern('stockAdded')
+  async handleStockAdded(@Payload() data: SyncEventDto) {
+    console.log(`📥 Evento stockAdded ricevuto da ${data.source}:`, {
+      barCode: data.barCode,
+      warehouseId: data.warehouseId,
+      quantity: data.quantity
+    });
+
+    try {
+      // Chiama il metodo syncAddStock esistente
+      await this.appService.syncAddStock(data);
+      
+      console.log(`✅ Stock sincronizzato nel cloud per ${data.barCode}`);
+      
+      return { 
+        success: true, 
+        message: `Stock ${data.barCode} sincronizzato`,
+        warehouseId: data.warehouseId
+      };
+    } catch (error) {
+      console.error(`❌ Errore sincronizzazione:`, error);
+      return { 
+        success: false, 
+        message: error.message 
+      };
+    }
   }
 
 }

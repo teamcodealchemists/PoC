@@ -32,7 +32,35 @@ export class InventoryHandlerService {
     );
 
     await this.inventoryRepository.addProduct(newProduct);
-    this.natsClient.emit('stockAdded', newProduct);
+    
+    //Evento strutturato per il cloud
+    const syncEvent = {
+      barCode: newProduct.getId().toString(),
+      productName: newProduct.getName(),
+      unitaryPrice: newProduct.getUnitPrice(),
+      warehouseId: String(process.env.WAREHOUSE_ID || 'LOCAL_WAREHOUSE'),
+      quantity: newProduct.getQuantity(),
+      minQuantity: newProduct.getMinQuantity(),
+      maxQuantity: newProduct.getMaxQuantity(),
+      eventType: 'STOCK_ADDED',
+      timestamp: new Date().toISOString(),
+      source: process.env.WAREHOUSE_ID || 'LOCAL_WAREHOUSE'
+    };
+
+    console.log('📤 Evento stockAdded:', {
+      barCode: syncEvent.barCode,
+      barCodeType: typeof syncEvent.barCode,
+      warehouseId: syncEvent.warehouseId,
+      warehouseIdType: typeof syncEvent.warehouseId
+    });
+
+    try {
+      this.natsClient.emit('stockAdded', syncEvent);
+      console.log(`✅ Evento stockAdded inviato per prodotto ${dto.id}`);
+    } catch (error) {
+      console.error(`❌ Errore durante l'invio dell'evento stockAdded:`, error);
+      throw new Error('Failed to emit stockAdded event');
+    }
   }
 
   async findProductById(id: IdDto): Promise<ConcreteProduct | null> {
@@ -77,7 +105,30 @@ export class InventoryHandlerService {
     );
 
     await this.inventoryRepository.updateProduct(reqBody.id, updatedProduct);
-    this.natsClient.emit('stockModified', updatedProduct);
+     
+    // Modifica l'evento per essere compatibile con il cloud
+    const syncEvent = {
+      barCode: updatedProduct.getId().toString(), // Solo l'ID come stringa
+      productName: updatedProduct.getName(),
+      unitaryPrice: updatedProduct.getUnitPrice(),
+      warehouseId: String(process.env.WAREHOUSE_ID || 'LOCAL_WAREHOUSE'),
+      quantity: updatedProduct.getQuantity(),
+      minQuantity: updatedProduct.getMinQuantity(),
+      maxQuantity: updatedProduct.getMaxQuantity(),
+      eventType: 'STOCK_EDITED',
+      timestamp: new Date().toISOString(),
+      source: process.env.WAREHOUSE_ID || 'LOCAL_WAREHOUSE'
+    };
+    console.log('type di barCode:', syncEvent.barCode, typeof syncEvent.barCode);
+    console.log('type di warehouseId:', syncEvent.warehouseId, typeof syncEvent.warehouseId);
+    try{
+      this.natsClient.emit('stockEdited', syncEvent);
+      
+      console.log(`📤 Evento stockEdited inviato per prodotto ${reqBody.id}`);
+    } catch (error) {
+      console.error(`❌ Errore durante l'invio dell'evento stockEdited:`, error);
+      throw new Error('Failed to emit stockEdited event');
+    }
   }
 
   async getTotal(): Promise<number> {

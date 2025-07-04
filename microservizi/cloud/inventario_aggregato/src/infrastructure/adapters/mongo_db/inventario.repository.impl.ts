@@ -9,6 +9,7 @@ import { StockAddedDto } from 'src/events/Dtos/StockAddedDto';
 import { StockRemovedDto } from 'src/events/Dtos/StockRemovedDto';
 import { ProductTable } from 'src/infrastructure/schemas/productTable.schema';
 import { ProductInWarehouse } from 'src/infrastructure/schemas/productInWarehouse.schema';
+import { SyncEventDto } from 'src/events/Dtos/SyncEventDto';
 
 @Injectable()
 export class InventoryRepositoryMongo implements InventoryRepository {
@@ -85,7 +86,7 @@ export class InventoryRepositoryMongo implements InventoryRepository {
     return inventory;
   }
 
-  async syncAddStock(stock:StockAddedDto){
+  async syncAddStock(stock:SyncEventDto): Promise<void> {
     //VERSIONE CON UPSERT AUTOMATICO. VANTAGGI: -Più efficiente, evita query multiple, atomico, Gestione automatica di inserimenti e aggiornamenti, thread safe.
     try {
     // 1. Upsert del prodotto nella tabella productTable
@@ -169,23 +170,23 @@ export class InventoryRepositoryMongo implements InventoryRepository {
     }
   }
 
-  async syncEditStock(stock: StockAddedDto): Promise<void> {
+  async syncEditStock(stock: SyncEventDto): Promise<void> {
     //VERSIONE CON UPSERT AUTOMATICO. VANTAGGI: -Più efficiente, evita query multiple, atomico, Gestione automatica di inserimenti e aggiornamenti
     try {
-      // Modifica del prodotto in productInWarehouse
+    // Modifica del prodotto in productInWarehouse
       await this.productInWarehouseModel.updateOne(
         {
-          barCode: stock.barCode,
-          warehouseId: stock.warehouseId
+          warehouseId: stock.warehouseId,
+          barCode: stock.barCode
         },
         {
           $set: {
             quantity: stock.quantity,
             minQuantity: stock.minQuantity,
-            maxQuantity: stock.maxQuantity,
+            maxQuantity: stock.maxQuantity
           }
         },
-        { upsert: true } // Crea se non esiste e salva automaticamente
+        {upsert: true} // Crea se non esiste e salva automaticamente
       );
 
       console.log(`Stock modificato con successo per ${stock.barCode} in ${stock.warehouseId}`);
