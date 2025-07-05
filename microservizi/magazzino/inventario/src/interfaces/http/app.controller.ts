@@ -73,11 +73,33 @@ export class AppController {
     return { data: items };
   }
 
-  @Delete('removeProduct/:id')
-  async removeProduct(@Param('id') id: string) {
-    let idVer= new IdDto();
-    idVer.id = parseInt(id, 10);
-    await this.InventoryHandlerService.removeProduct(idVer);
+  // @Delete('removeProduct/:id')
+  // async removeProduct(@Param('id') id: string) {
+  //   let idVer= new IdDto();
+  //   idVer.id = parseInt(id, 10);
+  //   await this.InventoryHandlerService.removeProduct(idVer);
+  // }
+
+  @MessagePattern({ cmd: `removeProduct.${process.env.WAREHOUSE_ID}`})
+  async removeProduct(@Payload() idDto: IdDto) {
+    console.log(`Removing product from warehouse ${process.env.WAREHOUSE_ID}:`, idDto.id);
+    
+    try {
+      await this.InventoryHandlerService.removeProduct(idDto);
+      return { 
+        success: true, 
+        message: `Product ${idDto.id} removed from warehouse ${process.env.WAREHOUSE_ID}` 
+      };
+    } catch (error) {
+      if (error.message.includes('current quantity')) {
+        throw new RpcException({ code: 400, message: error.message });
+      }
+      if (error.message.includes('not found')) {
+        throw new RpcException({ code: 404, message: 'Product not found' });
+      }
+      console.error(`Error removing product from warehouse ${process.env.WAREHOUSE_ID}:`, error);
+      throw new RpcException({ code: 500, message: error.message });
+    }
   }
 
   @MessagePattern({ cmd: `editProduct.${process.env.WAREHOUSE_ID}`})

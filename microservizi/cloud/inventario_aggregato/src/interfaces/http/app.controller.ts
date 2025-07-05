@@ -107,4 +107,32 @@ export class AppController {
     }
   }
 
+  @EventPattern('stockRemoved')
+  async handleStockRemoved(@Payload() data: SyncEventDto) {
+    console.log(`📥 Evento stockRemoved ricevuto da ${data.source}:`, {
+      barCode: data.barCode,
+      warehouseId: data.warehouseId,
+      quantity: data.quantity
+    });
+
+    try {
+      // Chiama il metodo syncRemoveStock esistente
+      await this.appService.syncRemoveStock(data);
+      
+      console.log(`✅ Stock rimosso dal cloud per ${data.barCode}`);
+      
+      return { 
+        success: true, 
+        message: `Stock ${data.barCode} rimosso`,
+        warehouseId: data.warehouseId
+      };
+    } catch (error) {
+      console.error(`❌ Errore sincronizzazione:`, error);
+      return { 
+        success: false, 
+        message: error.message 
+      };
+    }
+  }
+
 }

@@ -6,5 +6,5 @@ export class IdDto {
   @IsNotEmpty()
   @IsInt()
   @Min(0)
-  productId: number;
+  id: number;
 }

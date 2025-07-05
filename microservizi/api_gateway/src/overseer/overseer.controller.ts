@@ -29,7 +29,7 @@ export class OverseerController {
   @Get('product/:productId')
   async getProduct(@Param() idDto: IdDto): Promise<any> {
     const pattern = { cmd: 'getProduct' };
-    const payload = { id: idDto.productId };
+    const payload = { id: idDto.id };
 
     try {
       return await lastValueFrom(this.natsClient.send(pattern, payload));
@@ -97,6 +97,27 @@ export class OverseerController {
           error?.code || 500,
         );
       }
+    }
+  }
+
+  @Post('removeProduct/:warehouseId')
+  async removeProduct(
+    @Param() warehouseId: WarehouseIdDto,
+    @Body() idDto: IdDto,
+  ) {
+    const pattern = { cmd: `removeProduct.${warehouseId.warehouseId}` };
+    try {
+      const response = await lastValueFrom(this.natsClient.send(pattern, idDto));
+      if (response?.success) return response;
+      throw new HttpException(
+        response?.message || 'Unknown response from warehouse service',
+        response?.code || 500,
+      );
+    } catch (error) {
+      throw new HttpException(
+        error?.message || 'Error removing product',
+        error?.code || 500,
+      );
     }
   }
 }

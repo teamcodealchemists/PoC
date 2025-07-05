@@ -78,13 +78,48 @@ export class InventoryHandlerService {
   }
 
   async removeProduct(id: IdDto): Promise<void> {
-    const res = await this.inventoryRepository.removeById(id.id);
-    if (!res) {
+    // Prima trova il prodotto per verificare la quantità
+    const product = await this.inventoryRepository.findById(id.id);
+    
+    if (!product) {
       throw new Error('Product not found');
     }
-    else {
-      this.natsClient.emit('stockRemoved', id.id);
-      return;
+
+    // Verifica che la quantità sia zero
+    if (product.getQuantity() > 0) {
+      throw new Error(`Cannot remove product: current quantity is ${product.getQuantity()}. Quantity must be 0 to remove the product.`);
+    }
+
+    // Se la quantità è zero, procedi con la rimozione
+    const res = await this.inventoryRepository.removeById(id.id);
+    
+    if (!res) {
+      throw new Error('Failed to remove product from repository');
+    }
+
+    // Invia evento strutturato al cloud
+    const syncEvent = {
+      barCode: product.getId().toString(),
+      warehouseId: String(process.env.WAREHOUSE_ID || 'LOCAL_WAREHOUSE'),
+      eventType: 'STOCK_REMOVED',
+      timestamp: new Date().toISOString(),
+      source: process.env.WAREHOUSE_ID || 'LOCAL_WAREHOUSE'
+    };
+
+    console.log('📤 Evento stockRemoved:', {
+      barCode: syncEvent.barCode,
+      barCodeType: typeof syncEvent.barCode,
+      warehouseId: syncEvent.warehouseId,
+      warehouseIdType: typeof syncEvent.warehouseId,
+      previousQuantity: product.getQuantity()
+    });
+
+    try {
+      this.natsClient.emit('stockRemoved', syncEvent);
+      console.log(`✅ Evento stockRemoved inviato per prodotto ${id.id} (quantità era ${product.getQuantity()})`);
+    } catch (error) {
+      console.error(`❌ Errore durante l'invio dell'evento stockRemoved:`, error);
+      throw new Error('Failed to emit stockRemoved event');
     }
   }
 
