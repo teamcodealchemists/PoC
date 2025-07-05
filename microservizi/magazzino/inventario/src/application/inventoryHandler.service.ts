@@ -1,16 +1,16 @@
+import { InventoryRepositoryMongo } from 'src/infrastructure/adapters/mongo_db/inventory.repository.impl';
 import { Injectable, Inject, NotFoundException } from '@nestjs/common';
 import { ConcreteProduct } from "src/domain/core/concreteProduct";
 import { AddProductDto } from "src/interfaces/http/dto/addProduct.dto";
 import { IdDto } from "src/interfaces/http/dto/id.dto";
 import { EditProductDto } from "src/interfaces/http/dto/editProduct.dto";
-import { InventoryRepository } from "src/domain/ports/inventory.repository";
 
 
 @Injectable()
 export class InventoryHandlerService {
   constructor(
     @Inject('InventoryRepository')
-    private readonly inventoryRepository: InventoryRepository
+    private readonly inventoryRepository: InventoryRepositoryMongo
   ) {}
 
   async addProduct(dto: AddProductDto): Promise<void> {

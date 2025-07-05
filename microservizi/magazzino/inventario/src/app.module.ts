@@ -7,19 +7,17 @@ import { AppController } from './interfaces/http/app.controller';
 
 import { InventoryMongo, InventorySchema } from './infrastructure/schemas/inventory.schema';
 import { InventoryRepositoryMongo } from './infrastructure/adapters/mongo_db/inventory.repository.impl';
+import { SagaMessagesModule } from './interfaces/http/saga-messages/saga-messages.module';
+import { MongoModule } from './infrastructure/adapters/mongo_db/mongo.module';
 
 @Module({
   imports: [
-    ConfigModule.forRoot(),
-    MongooseModule.forRoot(process.env.MONGO_URL || 'mongodb://mongo:27017/inventory'),
-    MongooseModule.forFeature([
-      { name: InventoryMongo.name, schema: InventorySchema },
-    ]),
+    MongoModule,
+    SagaMessagesModule,
   ],
   controllers: [AppController],
   providers: [
-    InventoryHandlerService,
-    { provide: 'InventoryRepository', useClass: InventoryRepositoryMongo }
+    InventoryHandlerService
     ]
 })
 export class AppModule {}

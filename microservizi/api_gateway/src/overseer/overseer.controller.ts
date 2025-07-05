@@ -168,6 +168,9 @@ export class OverseerController {
         const pattern = { cmd: `addInternalOrder.${order.warehouseDeparture}` };
         try {
             const response = await lastValueFrom(this.natsClient.send(pattern, order));
+            if (response?.error) {
+                throw new HttpException(response?.error || 'Error adding internal order', response?.code || 500);
+            }
             return response;
         } catch (error) {
             throw new HttpException(error?.message || 'Error adding internal order', error?.code || 500);
@@ -186,17 +189,21 @@ export class OverseerController {
     }
 
     @Patch('setInternalOrderState/:warehouseId')
+    @UsePipes(new ValidationPipe({ transform: true, whitelist: true }))
     async setInternalOrderState(
         @Param('warehouseId') warehouseId: string,
-        @Body() data: { id: number; newState: string }
+        @Body() body: { id: IdDto; newState: OrderStateDto}
     ) {
         const pattern = { cmd: `setInternalOrderState.${warehouseId}` };
         const payload = {
-            id: data.id,
-            state: data.newState
+            id: body.id,
+            state: body.newState
         };
+        console.log('setInternalOrderState called with:', body.id, body.newState);
+        
         try {
-            return await lastValueFrom(this.natsClient.send(pattern, payload));
+            const response = await lastValueFrom(this.natsClient.send(pattern, payload));
+            return response;
         } catch (error) {
             throw new HttpException(error?.message || 'Error setting internal order state', error?.code || 500);
         }

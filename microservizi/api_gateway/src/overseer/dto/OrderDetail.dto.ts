@@ -1,5 +1,5 @@
 import { Type } from 'class-transformer';
-import { IsInt, IsNotEmpty, IsPositive, IsString, Min, MinLength } from 'class-validator';
+import { IsInt, IsNotEmpty, IsPositive, IsString, Min, IsNumber } from 'class-validator';
 
 export class OrderDetailDto {
     @Type(() => Number)
@@ -21,7 +21,9 @@ export class OrderDetailDto {
 
     @Type(() => Number)
     @IsNotEmpty()
-    @IsInt()
+    @IsNumber({maxDecimalPlaces: 2},{message: 'Unit price must be a number with up to 2 decimal places'})
     @Min(0)
     unitaryPrice: number;
 }
+
+//TODO: Fix del nome del file classe, pure in ordini

@@ -1,4 +1,6 @@
-import { Injectable } from '@nestjs/common';
+import { lastValueFrom } from 'rxjs';
+import { Inject, Injectable } from '@nestjs/common';
+import { ClientProxy } from '@nestjs/microservices';
 
 import { InternalOrderRepositoryMongo } from '../infrastructure/adapters/mongo_db/internalOrder.repository.impl';
 import { ExternalOrderRepositoryMongo } from '../infrastructure/adapters/mongo_db/externalOrder.repository.impl';
@@ -8,7 +10,6 @@ import { AddInternalOrderDto } from '../interfaces/http/dto/addInternalOrder.dto
 import { AddExternalOrderDto } from '../interfaces/http/dto/addExternalOrder.dto';
 import { IdDto } from '../interfaces/http/dto/id.dto';
 import { OrderStateDto } from '../interfaces/http/dto/orderState.dto';
-
 
 import { ConcreteInternalOrder } from '../domain/core/concreteInternalOrder';
 import { ConcreteExternalOrder } from '../domain/core/concreteExternalOrder';
@@ -20,6 +21,7 @@ export class OrderHandlerService {
     private readonly internalOrderRepo: InternalOrderRepositoryMongo,
     private readonly externalOrderRepo: ExternalOrderRepositoryMongo,
     private readonly orderDetailRepo: OrderDetailRepositoryMongo,
+    @Inject('natsService') private natsClient: ClientProxy,
   ) {}
 
   async getAllInternalOrders() {
@@ -43,62 +45,30 @@ export class OrderHandlerService {
   }
 
   async insertInternalOrder(order: AddInternalOrderDto) {
-    // Check that all required fields are present
-    if (
-      !order.orderID ||
-      !order.orderState ||
-      !order.creationDate ||
-      !order.timeToArrive ||
-      !order.warehouseDestination ||
-      !order.warehouseDeparture
-    ) {
-      throw new Error('Missing or invalid internal order data');
-    }
+    this.validateOrderFields(order, [
+      'orderID',
+      'orderState',
+      'creationDate',
+      'timeToArrive',
+      'warehouseDestination',
+      'warehouseDeparture',
+    ]);
 
-    // Check that orderDetails is a valid array if present
-    if (order.orderDetails && !Array.isArray(order.orderDetails)) {
-      throw new Error('orderDetails must be an array');
-    }
-
-    // Check that each detail has the required fields
-    if (order.orderDetails) {
-      for (const d of order.orderDetails) {
-      if (
-        !d.idProduct ||
-        !d.nameProduct ||
-        typeof d.quantity !== 'number' ||
-        typeof d.unitaryPrice !== 'number'
-      ) {
-        console.error('Invalid order detail:', d);
-        throw new Error('Missing or invalid order detail data');
-      }
-      }
-    }
+    this.validateOrderDetails(order.orderDetails);
 
     const existingOrder = await this.internalOrderRepo.getOrder(order.orderID);
     if (existingOrder) {
       throw new Error(`Internal order with ID ${order.orderID} already exists`);
     }
 
-    console.log('Inserting internal order with details:', order.orderDetails);
+    const inventoryOk = await this.checkInventoryForOrder(order.orderDetails);
+    console.log('Inventory check result IN FUN:', !inventoryOk);
+    if (!inventoryOk) {
+      throw new Error('Materials not available in inventory');
+    }
 
-    // Salva i dettagli prodotti in orderDetails
-    if (order.orderDetails && order.orderDetails.length > 0) {
-      const details = order.orderDetails.map((d) => ({
-        orderID: order.orderID,
-        idProduct: d.idProduct,
-        nameProduct: d.nameProduct,
-        quantity: d.quantity,
-        unitaryPrice: d.unitaryPrice,
-      }));
-      await this.orderDetailRepo.insertMany(details);
-      console.log('Inserted internal order details successfully:', details);
-    }
-    else {
-      console.log('No order details provided for internal order');
-      throw new Error('No order details provided for internal order');
-    }
-    // Salva l'ordine in internalOrders
+    await this.saveOrderDetails(order.orderID, order.orderDetails);
+
     const concreteOrder = new ConcreteInternalOrder(
       order.orderID,
       order.orderState,
@@ -111,18 +81,29 @@ export class OrderHandlerService {
   }
 
   async insertExternalOrder(order: AddExternalOrderDto) {
-    // Salva i dettagli prodotti in orderDetails
-    if (order.orderDetails && order.orderDetails.length > 0) {
-      const details = order.orderDetails.map((d) => ({
-        orderID: order.orderID,
-        idProduct: d.idProduct,
-        nameProduct: d.nameProduct,
-        quantity: d.quantity,
-        unitaryPrice: d.unitaryPrice,
-      }));
-      await this.orderDetailRepo.insertMany(details);
+    this.validateOrderFields(order, [
+      'orderID',
+      'orderState',
+      'creationDate',
+      'timeToArrive',
+      'warehouseDeparture',
+      'externalAddress',
+    ]);
+
+    this.validateOrderDetails(order.orderDetails);
+
+    const existingOrder = await this.externalOrderRepo.getOrder(order.orderID);
+    if (existingOrder) {
+      throw new Error(`External order with ID ${order.orderID} already exists`);
     }
-    // Salva l'ordine in externalOrders
+
+    const inventoryOk = await this.checkInventoryForOrder(order.orderDetails);
+    if (!inventoryOk) {
+      throw new Error('Materials not available in inventory');
+    }
+
+    await this.saveOrderDetails(order.orderID, order.orderDetails);
+
     const concreteOrder = new ConcreteExternalOrder(
       order.orderID,
       order.orderState,
@@ -137,11 +118,12 @@ export class OrderHandlerService {
   async setInternalOrderState(idDto: IdDto, orderStateDto: OrderStateDto): Promise<boolean> {
     const order = await this.internalOrderRepo.getOrder(idDto.id);
     if (!order) return false;
-    
-    const currentState = order.getOrderState();
-    const newState = orderStateDto.newState;
 
-    // Logica di transizione tra stati accettata
+    
+
+    const currentState = order.getOrderState();
+    const newState = orderStateDto.state;
+
     if (
       (currentState === OrderState.PENDING && (newState === OrderState.PROCESSING || newState === OrderState.CANCELLED)) ||
       (currentState === OrderState.PROCESSING && (newState === OrderState.SHIPPED || newState === OrderState.CANCELLED)) ||
@@ -149,8 +131,6 @@ export class OrderHandlerService {
     ) {
       return this.internalOrderRepo.setOrderState(idDto.id, newState);
     }
-
-    // Non puoi cambiare stato da DELIVERED o CANCELLED, o transizione non valida
     return false;
   }
 
@@ -159,9 +139,8 @@ export class OrderHandlerService {
     if (!order) return false;
 
     const currentState = order.getOrderState();
-    const newState = orderStateDto.newState;
+    const newState = orderStateDto.state;
 
-    // Logica di transizione tra stati accettata
     if (
       (currentState === OrderState.PENDING && (newState === OrderState.PROCESSING || newState === OrderState.CANCELLED)) ||
       (currentState === OrderState.PROCESSING && (newState === OrderState.SHIPPED || newState === OrderState.CANCELLED)) ||
@@ -169,8 +148,72 @@ export class OrderHandlerService {
     ) {
       return this.externalOrderRepo.setOrderState(idDto.id, newState);
     }
-
-    // Non puoi cambiare stato da DELIVERED o CANCELLED, o transizione non valida
     return false;
+  }
+
+  /**
+   * Saga example: checks the availability of materials in the inventory.
+   * Sends the order details to the inventory microservice and waits for confirmation.
+   */
+  private async checkInventoryForOrder(orderDetails: any[]): Promise<boolean> {
+    const materials = orderDetails.map(d => ({
+      id: d.idProduct,
+      quantity: d.quantity,
+    }));
+
+    const pattern = { cmd: 'checkInventory' };
+
+    try {
+      const result = await lastValueFrom(this.natsClient.send(pattern, { materials }));
+      console.log('Inventory check result:', result.success);
+      return result.success;
+    } catch (error) {
+      console.error('Error communicating with the inventory microservice:', error);
+      return false;
+    }
+  }
+
+  /**
+   * Validates that all required fields are present in the order.
+   */
+  private validateOrderFields(order: any, requiredFields: string[]) {
+    for (const field of requiredFields) {
+      if (!order[field]) {
+        throw new Error(`Missing or invalid field: ${field}`);
+      }
+    }
+  }
+
+  /**
+   * Validates the order details array.
+   */
+  private validateOrderDetails(orderDetails: any[]) {
+    if (!Array.isArray(orderDetails) || orderDetails.length === 0) {
+      throw new Error('orderDetails must be a non-empty array');
+    }
+    for (const d of orderDetails) {
+      if (
+        !d.idProduct ||
+        !d.nameProduct ||
+        typeof d.quantity !== 'number' ||
+        typeof d.unitaryPrice !== 'number'
+      ) {
+        throw new Error('Missing or invalid order detail data');
+      }
+    }
+  }
+
+  /**
+   * Saves order details to the repository.
+   */
+  private async saveOrderDetails(orderID: number, orderDetails: any[]) {
+    const details = orderDetails.map(d => ({
+      orderID,
+      idProduct: d.idProduct,
+      nameProduct: d.nameProduct,
+      quantity: d.quantity,
+      unitaryPrice: d.unitaryPrice,
+    }));
+    await this.orderDetailRepo.insertMany(details);
   }
 }

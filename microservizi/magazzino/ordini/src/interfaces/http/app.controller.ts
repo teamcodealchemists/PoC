@@ -17,7 +17,8 @@ import { AddInternalOrderDto } from './dto/addInternalOrder.dto';
 import { AddExternalOrderDto } from './dto/addExternalOrder.dto';
 import { IdDto } from './dto/id.dto';
 import { OrderStateDto } from './dto/orderState.dto';
-import { ClientProxy, MessagePattern, Payload } from '@nestjs/microservices';
+import { ClientProxy, Ctx, MessagePattern, Payload } from '@nestjs/microservices';
+import { response } from 'express';
 
 // Controller principale per la gestione degli ordini
 @Controller()
@@ -75,7 +76,8 @@ export class OrderController {
     try {
       return await this.orderHandler.insertInternalOrder(order);
     } catch (error) {
-      return { error: error.message };
+      console.error('Error inserting internal order:', error.message);
+      return { error: error.message, status: 'failed' };
     }
   }
 
@@ -97,11 +99,13 @@ export class OrderController {
   @MessagePattern({ cmd: `setInternalOrderState.${process.env.WAREHOUSE_ID}` })
   @UsePipes(new ValidationPipe({ transform: true, whitelist: true }))
   async setInternalOrderState(
-    @Payload('id') idDto: IdDto,
-    @Payload('state') orderStateDto: OrderStateDto
+    @Payload("id") id : number,
+    @Payload("state") state : any
   ) {
+    const IdDto: IdDto = { id: id };
+    const data: OrderStateDto = { state: state };
     try {
-      return this.orderHandler.setInternalOrderState(idDto, orderStateDto);
+      return this.orderHandler.setInternalOrderState(IdDto, data);
     } catch (error) {
       return { error: error.message };
     }
@@ -111,10 +115,13 @@ export class OrderController {
   @MessagePattern({ cmd: `setExternalOrderState.${process.env.WAREHOUSE_ID}` })
   @UsePipes(new ValidationPipe({ transform: true, whitelist: true }))
   async setExternalOrderState(
-    @Payload() data: { idDto: IdDto; orderStateDto: OrderStateDto }
+    @Payload("id") id: number,
+    @Payload("state") state: any
   ) {
+    const idDto: IdDto = { id: id };
+    const orderStateDto: OrderStateDto = { state: state };
     try {
-      return this.orderHandler.setExternalOrderState(data.idDto, data.orderStateDto);
+      return this.orderHandler.setExternalOrderState(idDto, orderStateDto);
     } catch (error) {
       return { error: error.message };
     }

@@ -34,8 +34,8 @@ export class ConcreteProduct extends Product {
     this.maxQuantity = maxQuantity;
   }
 
-  getId(): string {
-    return this.id.toString();
+  getId(): number {
+    return this.id;
   }
 
   getName(): string {
