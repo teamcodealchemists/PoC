@@ -33,11 +33,21 @@ export class OverseerController {
     //
     //------------------------------------------
 
-    //TODO: Rimuove in quanto noi controlliamo a livello aggregato e non nel singolo magazzino (Solo test per ora)
+    @Get('inventoryStatus/:warehouseId')
+    async getInventoryStatus(@Param('warehouseId') warehouseId: string): Promise<string> {
+        const pattern = { cmd: `getInventoryStatus.${warehouseId}` };
+        try {
+            return await lastValueFrom(this.natsClient.send(pattern, {}));
+        } catch (error) {
+            throw new HttpException(error?.message || 'Error fetching inventory status', error?.code || 500);
+        }
+    }
+
+    //TODO: Rimuove GET in quanto noi controlliamo a livello aggregato e non nel singolo magazzino (Solo test per ora)
     @Get('product/:id')
     async getProduct(@Param() idDto: IdDto): Promise<any> {
 
-        const pattern = { cmd: 'getProduct' };
+        const pattern = { cmd: 'getWarehouseProduct' };
         const payload = { id: idDto.id };
 
         try {
@@ -49,6 +59,16 @@ export class OverseerController {
             } else {
                 throw new HttpException('Error fetching product', 500);
             }
+        }
+    }
+
+    @Get('warehouseInventory/:warehouseId')
+    async getWarehouseInventory(@Param('warehouseId') warehouseId: string) {
+        const pattern = { cmd: `getWarehouseInventory.${warehouseId}` };
+        try {
+            return await lastValueFrom(this.natsClient.send(pattern, {}));
+        } catch (error) {
+            throw new HttpException(error?.message || 'Error fetching warehouse inventory', error?.code || 500);
         }
     }
 
@@ -89,9 +109,9 @@ export class OverseerController {
     //
     //------------------------------------------
 
-    //TODO: Rimuovere get per quando avremo gli ordini aggregati
-
-    //------------------DA RIMUOVERE IN RELEASE------------------------------------------------------------------------------------------------------------------------
+    // =====================
+    // API DI LETTURA
+    // =====================
 
     @Get('getInternalOrders/:warehouseId')
     @UsePipes(new ValidationPipe({ transform: true, whitelist: true }))
@@ -161,7 +181,9 @@ export class OverseerController {
         }
     }
 
-    //------------------------------------------------------------------------------------------------------------------------------------------
+    // ==========================================
+    // API DI INSERIMENTO
+    // ==========================================
 
     @Post('addInternalOrder')
     async addInternalOrder(@Body() order: AddInternalOrderDto) {
@@ -182,11 +204,18 @@ export class OverseerController {
         const pattern = { cmd: `addExternalOrder.${order.warehouseDeparture}` };
         try {
             const response = await lastValueFrom(this.natsClient.send(pattern, order));
+            if (response?.error) {
+                throw new HttpException(response?.error || 'Error adding internal order', response?.code || 500);
+            }
             return response;
         } catch (error) {
             throw new HttpException(error?.message || 'Error adding external order', error?.code || 500);
         }
     }
+
+    // =====================
+    // API DI AGGIORNAMENTO STATO
+    // =====================
 
     @Patch('setInternalOrderState/:warehouseId')
     @UsePipes(new ValidationPipe({ transform: true, whitelist: true }))
@@ -199,11 +228,9 @@ export class OverseerController {
             id: body.id,
             state: body.newState
         };
-        console.log('setInternalOrderState called with:', body.id, body.newState);
         
         try {
-            const response = await lastValueFrom(this.natsClient.send(pattern, payload));
-            return response;
+            return await lastValueFrom(this.natsClient.send(pattern, payload));
         } catch (error) {
             throw new HttpException(error?.message || 'Error setting internal order state', error?.code || 500);
         }
@@ -212,11 +239,15 @@ export class OverseerController {
     @Patch('setExternalOrderState/:warehouseId')
     async setExternalOrderState(
         @Param('warehouseId') warehouseId: string,
-        @Body() data: { idDto: IdDto; orderStateDto: OrderStateDto }
+        @Body() data: { id: IdDto; newState: OrderStateDto }
     ) {
         const pattern = { cmd: `setExternalOrderState.${warehouseId}` };
+        const payload = {
+            id: data.id,
+            state: data.newState
+        };
         try {
-            return await lastValueFrom(this.natsClient.send(pattern, data));
+            return await lastValueFrom(this.natsClient.send(pattern, payload));
         } catch (error) {
             throw new HttpException(error?.message || 'Error setting external order state', error?.code || 500);
         }

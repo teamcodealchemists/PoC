@@ -6,7 +6,7 @@ db.externalOrders.insertMany(
 [
   {
     "orderID": 3001,
-    "orderState": "In attesa",
+    "orderState": "CANCELED",
     "creationDate": "2025-06-03T00:00:00Z",
     "timeToArrive": "2025-06-12T00:00:00Z",
     "warehouseDeparture": 1,
@@ -14,7 +14,7 @@ db.externalOrders.insertMany(
   },
   {
     "orderID": 3002,
-    "orderState": "In elaborazione",
+    "orderState": "PROCESSING",
     "creationDate": "2025-06-06T00:00:00Z",
     "timeToArrive": "2025-06-13T00:00:00Z",
     "warehouseDeparture": 2,
@@ -29,7 +29,7 @@ db.internalOrders.insertMany(
 [
   {
     "orderID": 2001,
-    "orderState": "In attesa",
+    "orderState": "PROCESSING",
     "creationDate": "2025-06-02T00:00:00Z",
     "timeToArrive": "2025-06-08T00:00:00Z",
     "warehouseDeparture": 1,
@@ -37,7 +37,7 @@ db.internalOrders.insertMany(
   },
   {
     "orderID": 2002,
-    "orderState": "In elaborazione",
+    "orderState": "CANCELED",
     "creationDate": "2025-06-04T00:00:00Z",
     "timeToArrive": "2025-06-09T00:00:00Z",
     "warehouseDeparture": 2,

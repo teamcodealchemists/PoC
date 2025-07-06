@@ -76,7 +76,6 @@ export class OrderController {
     try {
       return await this.orderHandler.insertInternalOrder(order);
     } catch (error) {
-      console.error('Error inserting internal order:', error.message);
       return { error: error.message, status: 'failed' };
     }
   }

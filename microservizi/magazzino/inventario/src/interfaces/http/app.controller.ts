@@ -1,91 +1,112 @@
-import { Controller, Get, Param, Post, Body, Delete, Patch, HttpException, HttpStatus, UsePipes, ValidationPipe, NotFoundException } from '@nestjs/common';
-import { InventoryHandlerService } from 'src/application/inventoryHandler.service';
-import { RpcException } from '@nestjs/microservices';
+import {
+  Controller,
+  UsePipes,
+  ValidationPipe,
+  NotFoundException,
+  HttpException,
+  HttpStatus,
+} from '@nestjs/common';
+import { MessagePattern, Payload } from '@nestjs/microservices';
+import { ConfigService } from '@nestjs/config';
 
+import { InventoryHandlerService } from 'src/application/inventoryHandler.service';
 import { AddProductDto } from './dto/addProduct.dto';
 import { IdDto } from './dto/id.dto';
 import { EditProductDto } from './dto/editProduct.dto';
 
-import { ConfigService } from '@nestjs/config';
-import { MessagePattern, Payload } from '@nestjs/microservices';
-
-let conf = new ConfigService();
+const conf = new ConfigService();
 
 @Controller()
 export class AppController {
-  constructor(private readonly InventoryHandlerService: InventoryHandlerService) { }
+  constructor(private readonly inventoryHandler: InventoryHandlerService) {}
 
-  // Informazioni di Diagnostica Magazzino 
-  @Get('whoareyou')
+  // ==========================================
+  // DIAGNOSTIC & READ FUNCTIONS
+  // ==========================================
+
+  /**
+   * Diagnostic info for the warehouse.
+   * Returns a string with the warehouse ID and total product count.
+   */
+  @MessagePattern({ cmd: `getInventoryStatus.${process.env.WAREHOUSE_ID}` })
   async getInfo(): Promise<string> {
-    const quantitaTotale = await this.InventoryHandlerService.getTotal();
-    return `Ciao sono il magazzino '${process.env.WAREHOUSE_ID}' ed ho ${quantitaTotale} prodotti`;
+    const totalQuantity = await this.inventoryHandler.getTotal();
+    return `Hello, I am warehouse '${process.env.WAREHOUSE_ID}' and I have ${totalQuantity} products`;
   }
 
-  // Gestione dei messaggi NATS per il microservizio di magazzino
-  @MessagePattern({ cmd: 'getProduct' })
+  /**
+   * Get a product by its ID.
+   * Throws 404 if not found.
+   */
+  @MessagePattern({ cmd: `getWarehouseProduct.${process.env.WAREHOUSE_ID}` })
   @UsePipes(new ValidationPipe({ transform: true, whitelist: true }))
   async getProductById(@Payload() idDto: IdDto) {
     try {
-      return await this.InventoryHandlerService.findProductById(idDto);
+      return await this.inventoryHandler.findProductById(idDto);
     } catch (error) {
-      if (error instanceof NotFoundException) {
-        throw new RpcException({ code: 404, message: 'Product not found' });
-      }
-      throw new RpcException({ code: 500, message: error.message });
+      return { error: error.message, status: 'failed' };
     }
   }
 
-  //TODO: Rimuovere in quanto non serve più, ora il magazzino è un microservizio
-  //@Post('addProduct')
-  //async addProduct(@Body() newProduct: AddProductDto) {
-  //  await this.InventoryHandlerService.addProduct(newProduct);
-  //}
+  /**
+   * Get the full inventory for the warehouse.
+   */
+  @MessagePattern({ cmd: `getWarehouseInventory.${process.env.WAREHOUSE_ID}` })
+  async getInventory() {
+    try {
+      const items = await this.inventoryHandler.getInventory();
+      return { data: items };
+    } catch (error) {
+      return { error: error.message, status: 'failed' };
+    }
+  }
 
-  @MessagePattern({ cmd: `addProduct.${process.env.WAREHOUSE_ID}`})
+  // ==========================================
+  // WRITE FUNCTIONS
+  // ==========================================
+
+  /**
+   * Add a new product to the warehouse.
+   * Returns error if the product already exists.
+   */
+  @MessagePattern({ cmd: `addProduct.${process.env.WAREHOUSE_ID}` })
   async addProduct(@Payload() newProduct: AddProductDto) {
     console.log(`Adding product to warehouse ${process.env.WAREHOUSE_ID}:`, newProduct);
     try {
-      await this.InventoryHandlerService.addProduct(newProduct);
+      await this.inventoryHandler.addProduct(newProduct);
       return { success: true, message: `Product added to warehouse ${process.env.WAREHOUSE_ID}` };
     } catch (error) {
-      if (error instanceof RpcException && error.message?.includes('already exists')) {
-      throw new RpcException({ code: 409, message: 'Product already added to warehouse' });
-      }
-      if (error.message?.includes('already exists')) {
-      throw new RpcException({ code: 409, message: 'Product already added to warehouse' });
-      }
-      console.error(`Error adding product to warehouse ${process.env.WAREHOUSE_ID}:`, error);
-      throw new RpcException({ code: 500, message: error.message });
+      return { error: error.message, status: 'failed' };
     }
   }
 
-  @Get('inventory')
-  async getInventory() {
-    const items = await this.InventoryHandlerService.getInventory();
-    return { data: items };
+  /**
+   * Remove a product from the warehouse by ID.
+   * TODO: Vedere è utile fare l'eliminazione del prodotto fisico/aggregato e come
+   */
+  @MessagePattern({ cmd: `removeWarehouseProduct.${process.env.WAREHOUSE_ID}` })
+  async removeProduct(@Payload() idDto: IdDto) {
+    try {
+      await this.inventoryHandler.removeProduct(idDto);
+      return { success: true, message: `Product removed from warehouse ${process.env.WAREHOUSE_ID}` };
+    } catch (error) {
+      return { error: error.message, status: 'failed' };
+    }
   }
 
-  @Delete('removeProduct/:id')
-  async removeProduct(@Param('id') id: string) {
-    let idVer= new IdDto();
-    idVer.id = parseInt(id, 10);
-    await this.InventoryHandlerService.removeProduct(idVer);
-  }
-
-  @MessagePattern({ cmd: `editProduct.${process.env.WAREHOUSE_ID}`})
+  /**
+   * Edit an existing product in the warehouse.
+   */
+  @MessagePattern({ cmd: `editProduct.${process.env.WAREHOUSE_ID}` })
   async editProduct(@Payload() body: EditProductDto) {
     try {
-      await this.InventoryHandlerService.editProduct(body);
-      return { success: true, message: `Product ${body.id} edited in warehouse ${process.env.WAREHOUSE_ID}` };
+      await this.inventoryHandler.editProduct(body);
+      return {
+        success: true,
+        message: `Product ${body.id} edited in warehouse ${process.env.WAREHOUSE_ID}`,
+      };
     } catch (error) {
-      if (error instanceof NotFoundException) {
-        throw new RpcException({ code: 404, message: 'Product not found' });
-      }
-      throw new RpcException({ code: 500, message: error.message });
+      return { error: error.message, status: 'failed' };
     }
   }
-
-  
-
 }

@@ -7,15 +7,25 @@ import { CheckProductDto } from '../dto/checkProduct.dto';
 export class SagaMessagesController {
   constructor(private readonly sagaMessagesService: SagaMessagesService) {}
 
-  @MessagePattern({ cmd: 'checkInventory' })
+  @MessagePattern({ cmd: `checkInventory.${process.env.WAREHOUSE_ID}` })
   async checkInventory(@Payload() data: any) {
     let products;
     if (Array.isArray(data.materials)) {
       products = data.materials.map((item: any) => Object.assign(new CheckProductDto(), item));
-      console.log('Mapped products:', products);
     } else {
       products = [Object.assign(new CheckProductDto(), data.materials)];
     }
     return await this.sagaMessagesService.checkInventory(products);
+  }
+
+  @MessagePattern({ cmd: `refundInventory.${process.env.WAREHOUSE_ID}` })
+  async refundInventory(@Payload() data: any) {
+    let products;
+    if (Array.isArray(data.materials)) {
+      products = data.materials.map((item: any) => Object.assign(new CheckProductDto(), item));
+    } else {
+      products = [Object.assign(new CheckProductDto(), data.materials)];
+    }
+    return await this.sagaMessagesService.refundInventory(products);
   }
 }

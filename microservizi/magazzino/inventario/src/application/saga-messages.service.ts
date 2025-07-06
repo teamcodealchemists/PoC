@@ -26,4 +26,18 @@ export class SagaMessagesService {
         }
         return { success: true };
     }
+
+    async refundInventory(data: CheckProductDto[]): Promise<{ success: boolean }> {
+        // Implement the logic to refund inventory
+        for (const product of data) {
+            const existingProduct = await this.inventoryRepository.findById(product.id);
+            if (existingProduct) {
+                existingProduct.addQuantity(product.quantity);
+                await this.inventoryRepository.updateProduct(existingProduct.getId(), existingProduct);
+            } else {
+                return { success: false };
+            }
+        }
+        return { success: true };
+    }
 }

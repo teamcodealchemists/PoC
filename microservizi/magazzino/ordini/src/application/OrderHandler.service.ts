@@ -65,19 +65,19 @@ export class OrderHandlerService {
     console.log('Inventory check result IN FUN:', !inventoryOk);
     if (!inventoryOk) {
       throw new Error('Materials not available in inventory');
+    } else {
+      await this.saveOrderDetails(order.orderID, order.orderDetails);
+
+      const concreteOrder = new ConcreteInternalOrder(
+        order.orderID,
+        order.orderState = OrderState.PROCESSING,
+        order.creationDate,
+        order.timeToArrive,
+        order.warehouseDestination,
+        order.warehouseDeparture
+      );
+      return this.internalOrderRepo.insertOrder(concreteOrder);
     }
-
-    await this.saveOrderDetails(order.orderID, order.orderDetails);
-
-    const concreteOrder = new ConcreteInternalOrder(
-      order.orderID,
-      order.orderState,
-      order.creationDate,
-      order.timeToArrive,
-      order.warehouseDestination,
-      order.warehouseDeparture
-    );
-    return this.internalOrderRepo.insertOrder(concreteOrder);
   }
 
   async insertExternalOrder(order: AddExternalOrderDto) {
@@ -106,7 +106,7 @@ export class OrderHandlerService {
 
     const concreteOrder = new ConcreteExternalOrder(
       order.orderID,
-      order.orderState,
+      order.orderState = OrderState.PROCESSING,
       order.creationDate,
       order.timeToArrive,
       order.warehouseDeparture,
@@ -119,17 +119,25 @@ export class OrderHandlerService {
     const order = await this.internalOrderRepo.getOrder(idDto.id);
     if (!order) return false;
 
-    
-
     const currentState = order.getOrderState();
     const newState = orderStateDto.state;
+
+    console.log(`Current state: ${currentState}, New state: ${newState}`);
 
     if (
       (currentState === OrderState.PENDING && (newState === OrderState.PROCESSING || newState === OrderState.CANCELLED)) ||
       (currentState === OrderState.PROCESSING && (newState === OrderState.SHIPPED || newState === OrderState.CANCELLED)) ||
       (currentState === OrderState.SHIPPED && (newState === OrderState.DELIVERED || newState === OrderState.CANCELLED))
     ) {
-      return this.internalOrderRepo.setOrderState(idDto.id, newState);
+      if (newState === OrderState.CANCELLED && (currentState === OrderState.PROCESSING)) {
+        // Handle cancellation logic
+        const orderDetails = await this.getOrderDetails(idDto);
+        await this.refundInventoryForOrder(orderDetails);
+        return this.internalOrderRepo.setOrderState(idDto.id, newState);
+      }
+      else{
+        return this.internalOrderRepo.setOrderState(idDto.id, newState);
+      }
     }
     return false;
   }
@@ -141,12 +149,22 @@ export class OrderHandlerService {
     const currentState = order.getOrderState();
     const newState = orderStateDto.state;
 
+    
+
     if (
       (currentState === OrderState.PENDING && (newState === OrderState.PROCESSING || newState === OrderState.CANCELLED)) ||
       (currentState === OrderState.PROCESSING && (newState === OrderState.SHIPPED || newState === OrderState.CANCELLED)) ||
       (currentState === OrderState.SHIPPED && (newState === OrderState.DELIVERED || newState === OrderState.CANCELLED))
     ) {
-      return this.externalOrderRepo.setOrderState(idDto.id, newState);
+      if (newState === OrderState.CANCELLED && (currentState === OrderState.PROCESSING)) {
+        // Handle cancellation logic
+        const orderDetails = await this.getOrderDetails(idDto);
+        await this.refundInventoryForOrder(orderDetails);
+        return this.externalOrderRepo.setOrderState(idDto.id, newState);
+      }
+      else{
+        return this.externalOrderRepo.setOrderState(idDto.id, newState);
+      }
     }
     return false;
   }
@@ -161,14 +179,32 @@ export class OrderHandlerService {
       quantity: d.quantity,
     }));
 
-    const pattern = { cmd: 'checkInventory' };
+    const pattern = { cmd: `checkInventory.${process.env.WAREHOUSE_ID}` };
 
     try {
       const result = await lastValueFrom(this.natsClient.send(pattern, { materials }));
-      console.log('Inventory check result:', result.success);
       return result.success;
     } catch (error) {
-      console.error('Error communicating with the inventory microservice:', error);
+      return false;
+    }
+  }
+
+  /**
+   * Saga example: refunds the materials in case of order cancellation.
+   * Sends the order details to the inventory microservice and waits for confirmation.
+   */
+  private async refundInventoryForOrder(orderDetails: any[]): Promise<boolean> {
+    const materials = orderDetails.map(d => ({
+      id: d.idProduct,
+      quantity: d.quantity,
+    }));
+
+    const pattern = { cmd: `refundInventory.${process.env.WAREHOUSE_ID}` };
+
+    try {
+      const result = await lastValueFrom(this.natsClient.send(pattern, { materials }));
+      return result.success;
+    } catch (error) {
       return false;
     }
   }
