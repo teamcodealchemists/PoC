@@ -33,7 +33,6 @@ export class InventoryRepositoryMongo implements InventoryRepository {
     ));
   }
 
-  //TODO: Vedere se è utile
   async getTotalQuantity(): Promise<number> {
     const docs = await this.inventoryModel.find().exec();
     return docs.reduce((sum, item) => sum + item.quantity, 0);
