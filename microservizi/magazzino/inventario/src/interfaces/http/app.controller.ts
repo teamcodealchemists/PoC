@@ -82,13 +82,17 @@ export class AppController {
 
   /**
    * Remove a product from the warehouse by ID.
-   * TODO: Vedere è utile fare l'eliminazione del prodotto fisico/aggregato e come
    */
-  @MessagePattern({ cmd: `removeWarehouseProduct.${process.env.WAREHOUSE_ID}` })
+  @MessagePattern({ cmd: `removeProduct.${process.env.WAREHOUSE_ID}`})
   async removeProduct(@Payload() idDto: IdDto) {
+    console.log(`Removing product from warehouse ${process.env.WAREHOUSE_ID}:`, idDto.id);
+    
     try {
       await this.inventoryHandler.removeProduct(idDto);
-      return { success: true, message: `Product removed from warehouse ${process.env.WAREHOUSE_ID}` };
+      return { 
+        success: true, 
+        message: `Product ${idDto.id} removed from warehouse ${process.env.WAREHOUSE_ID}` 
+      };
     } catch (error) {
       return { error: error.message, status: 'failed' };
     }

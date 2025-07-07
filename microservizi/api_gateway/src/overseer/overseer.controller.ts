@@ -1,14 +1,14 @@
 import {
-    Controller,
-    Inject,
-    Post,
-    Patch,
-    Body,
-    Get,
-    Param,
-    HttpException,
-    UsePipes,
-    ValidationPipe
+  Controller,
+  Inject,
+  Post,
+  Patch,
+  Body,
+  Get,
+  Param,
+  HttpException,
+  UsePipes,
+  ValidationPipe,
 } from '@nestjs/common';
 import { ClientProxy, Payload } from '@nestjs/microservices';
 
@@ -25,7 +25,7 @@ import { AddExternalOrderDto } from './dto/addExternalOrder.dto';
 
 @Controller()
 export class OverseerController {
-    constructor(@Inject('natsService') private natsClient: ClientProxy) { }
+  constructor(@Inject('natsService') private natsClient: ClientProxy) {}
 
     //------------------------------------------
     //
@@ -50,19 +50,19 @@ export class OverseerController {
         const pattern = { cmd: 'getWarehouseProduct' };
         const payload = { id: idDto.id };
 
-        try {
-            return await lastValueFrom(this.natsClient.send(pattern, payload));
-        } catch (error) {
-            // Se l'errore arriva da RpcException, avrà error.code e error.message
-            if (error.code === 404) {
-                throw new HttpException('Product not found', 404);
-            } else {
-                throw new HttpException('Error fetching product', 500);
-            }
-        }
+    try {
+      return await lastValueFrom(this.natsClient.send(pattern, payload));
+    } catch (error) {
+      // Se l'errore arriva da RpcException, avrà error.code e error.message
+      if (error.code === 404) {
+        throw new HttpException('Product not found', 404);
+      } else {
+        throw new HttpException('Error fetching product', 500);
+      }
     }
+  }
 
-    @Get('warehouseInventory/:warehouseId')
+  @Get('warehouseInventory/:warehouseId')
     async getWarehouseInventory(@Param('warehouseId') warehouseId: string) {
         const pattern = { cmd: `getWarehouseInventory.${warehouseId}` };
         try {
@@ -72,18 +72,27 @@ export class OverseerController {
         }
     }
 
-    //Andiamo a creare un nuovo prodotto in un magazzino specifico
-    @Post('addProduct/:warehouseId')
-    async addProduct(@Param() warehouseId: WarehouseIdDto, @Body() newProduct: AddProductDto) {
-        const pattern = { cmd: `addProduct.${warehouseId.warehouseId}` };
-        try {
-            const response = await lastValueFrom(this.natsClient.send(pattern, newProduct));
-            if (response?.success) return response;
-            throw new HttpException(response?.message || 'Unknown response from warehouse service', response?.code || 500);
-        } catch (error) {
-            throw new HttpException(error?.message || 'Error adding product', error?.code || 500);
-        }
+  //Andiamo a creare un nuovo prodotto in un magazzino specifico
+  @Post('addProduct/:warehouseId')
+  async addProduct(
+    @Param() warehouseId: WarehouseIdDto,
+    @Body() newProduct: AddProductDto,
+  ) {
+    const pattern = { cmd: `addProduct.${warehouseId.warehouseId}` };
+    try {
+      const response = await lastValueFrom(this.natsClient.send(pattern, newProduct));
+      if (response?.success) return response;
+      throw new HttpException(
+        response?.message || 'Unknown response from warehouse service',
+        response?.code || 500,
+      );
+    } catch (error) {
+      throw new HttpException(
+        error?.message || 'Error adding product',
+        error?.code || 500,
+      );
     }
+  }
 
     //Andiamo a modificare un prodotto in un magazzino specifico
     @Patch('editProduct/:warehouseId')
@@ -102,6 +111,28 @@ export class OverseerController {
             }
         }
     }
+
+    @Post('removeProduct/:warehouseId')
+    async removeProduct(
+      @Param() warehouseId: WarehouseIdDto,
+      @Body() idDto: IdDto,
+    ) {
+      const pattern = { cmd: `removeProduct.${warehouseId.warehouseId}` };
+      try {
+        const response = await lastValueFrom(this.natsClient.send(pattern, idDto));
+        if (response?.success) return response;
+        throw new HttpException(
+          response?.message || 'Unknown response from warehouse service',
+          response?.code || 500,
+        );
+      } catch (error) {
+        throw new HttpException(
+          error?.message || 'Error removing product',
+          error?.code || 500,
+        );
+      }
+    }
+  
 
     //------------------------------------------
     //
