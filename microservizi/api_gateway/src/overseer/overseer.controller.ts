@@ -9,6 +9,7 @@ import {
   HttpException,
   UsePipes,
   ValidationPipe,
+  HttpStatus,
 } from '@nestjs/common';
 import { ClientProxy, Payload } from '@nestjs/microservices';
 
@@ -120,15 +121,17 @@ export class OverseerController {
       const pattern = { cmd: `removeProduct.${warehouseId.warehouseId}` };
       try {
         const response = await lastValueFrom(this.natsClient.send(pattern, idDto));
+        console.log(`Response from warehouse service:`, response);
         if (response?.success) return response;
         throw new HttpException(
           response?.message || 'Unknown response from warehouse service',
-          response?.code || 500,
+          response?.code || 500
         );
       } catch (error) {
+        console.error(`Error removing product:`, error);
         throw new HttpException(
           error?.message || 'Error removing product',
-          error?.code || 500,
+          error?.status
         );
       }
     }

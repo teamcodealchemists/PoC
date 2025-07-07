@@ -94,7 +94,7 @@ export class AppController {
         message: `Product ${idDto.id} removed from warehouse ${process.env.WAREHOUSE_ID}` 
       };
     } catch (error) {
-      return { error: error.message, status: 'failed' };
+      return { message: error.message, success:false, code:400};
     }
   }
 

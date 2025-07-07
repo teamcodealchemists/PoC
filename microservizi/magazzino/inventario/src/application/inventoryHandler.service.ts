@@ -4,7 +4,6 @@ import { ConcreteProduct } from "src/domain/core/concreteProduct";
 import { AddProductDto } from "src/interfaces/http/dto/addProduct.dto";
 import { IdDto } from "src/interfaces/http/dto/id.dto";
 import { EditProductDto } from "src/interfaces/http/dto/editProduct.dto";
-import { InventoryRepository } from "src/domain/ports/inventory.repository";
 import { ClientProxy } from '@nestjs/microservices';
 
 
@@ -88,6 +87,7 @@ export class InventoryHandlerService {
 
     // Verifica che la quantità sia zero
     if (product.getQuantity() > 0) {
+      console.log(`❌ Cannot remove product: current quantity is ${product.getQuantity()}. Quantity must be 0 to remove the product.`);
       throw new Error(`Cannot remove product: current quantity is ${product.getQuantity()}. Quantity must be 0 to remove the product.`);
     }
 

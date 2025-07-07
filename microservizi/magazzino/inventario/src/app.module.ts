@@ -10,6 +10,7 @@ import { InventoryMongo, InventorySchema } from './infrastructure/schemas/invent
 import { InventoryRepositoryMongo } from './infrastructure/adapters/mongo_db/inventory.repository.impl';
 import { SagaMessagesModule } from './interfaces/http/saga-messages/saga-messages.module';
 import { MongoModule } from './infrastructure/adapters/mongo_db/mongo.module';
+import { NatsClientModule } from './nats-client/nats-client.module';
 
 @Module({
   imports: [
@@ -20,16 +21,7 @@ import { MongoModule } from './infrastructure/adapters/mongo_db/mongo.module';
     MongooseModule.forFeature([
       { name: InventoryMongo.name, schema: InventorySchema },
     ]),
-    ClientsModule.register([
-      {
-        name: 'NATS_SERVICE',
-        transport: Transport.NATS,
-        options: {
-          // Configura qui i parametri di connessione NATS se necessario
-          servers: [process.env.NATS_URL || 'nats://nats']
-        },
-      },
-    ]),
+    NatsClientModule,
   ],
   controllers: [AppController],
   providers: [
