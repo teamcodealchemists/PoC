@@ -5,8 +5,6 @@ import { Inventory } from '../../../domain/models/inventario.model';
 
 import { Injectable } from '@nestjs/common';
 
-import { StockAddedDto } from 'src/events/Dtos/StockAddedDto';
-import { StockRemovedDto } from 'src/events/Dtos/StockRemovedDto';
 import { ProductTable } from 'src/infrastructure/schemas/productTable.schema';
 import { ProductInWarehouse } from 'src/infrastructure/schemas/productInWarehouse.schema';
 import { SyncEventDto } from 'src/events/Dtos/SyncEventDto';
@@ -133,7 +131,7 @@ export class InventoryRepositoryMongo implements InventoryRepository {
   }
 
 
-  async syncRemoveStock(stock: StockRemovedDto): Promise<void> {
+  async syncRemoveStock(stock: SyncEventDto): Promise<void> {
     //VERSIONE ANALOGA ALLA FUNZIONE ADDSTOCK
     try {
       const deleteResult = await this.productInWarehouseModel.deleteOne({

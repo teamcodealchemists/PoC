@@ -1,12 +1,13 @@
-// Se usabile
-
 import { Module } from '@nestjs/common';
 import { EventsMicroserviceController } from './events.controller';
-import { NatsClientModule } from '../nats-client/natsClient.module';
+import { EventsService } from './events.service';
+
+import { MongoModule } from 'src/infrastructure/module/mongo.module';
 
 @Module({
-  imports: [NatsClientModule],
+  imports: [MongoModule],
   controllers: [EventsMicroserviceController],
-  providers: [],
+  providers: [EventsService],
+  exports: [EventsService]
 })
 export class EventsMicroserviceModule {}

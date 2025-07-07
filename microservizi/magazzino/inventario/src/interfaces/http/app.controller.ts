@@ -56,7 +56,7 @@ export class AppController {
     }
   }
 
-  @MessagePattern({ cmd: `getInventory.${process.env.WAREHOUSE_ID}`})
+  @MessagePattern({ cmd: `getWarehouseInventory.${process.env.WAREHOUSE_ID}`})
   async getInventoryByWarehouse(): Promise<any> {
     try {
       const items = await this.InventoryHandlerService.getInventory();

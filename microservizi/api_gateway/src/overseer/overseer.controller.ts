@@ -43,6 +43,16 @@ export class OverseerController {
     }
   }
 
+  @Get('warehouseInventory/:warehouseId')
+    async getWarehouseInventory(@Param('warehouseId') warehouseId: string) {
+        const pattern = { cmd: `getWarehouseInventory.${warehouseId}` };
+        try {
+            return await lastValueFrom(this.natsClient.send(pattern, {}));
+        } catch (error) {
+            throw new HttpException(error?.message || 'Error fetching warehouse inventory', error?.code || 500);
+        }
+    }
+
   //Andiamo a creare un nuovo prodotto in un magazzino specifico
   @Post('addProduct/:warehouseId')
   async addProduct(

@@ -1,31 +1,93 @@
 import { Controller } from '@nestjs/common';
 import { EventPattern, Payload } from '@nestjs/microservices';
 import { EventsService } from './events.service.js';
-import { StockAddedDto } from './Dtos/StockAddedDto';
-import { StockRemovedDto } from './Dtos/StockRemovedDto';
+import { SyncEventDto } from './Dtos/SyncEventDto.js';
 
 @Controller()
 export class EventsMicroserviceController {
-  //constructor(@Inject('NATS_SERVICE') private natsClient: ClientProxy) {}
+  constructor(private readonly eventsService: EventsService) {}
 
-  constructor(private eventsService: EventsService) {}
+  @EventPattern('stockEdited')
+  async handleStockEdited(@Payload() data: SyncEventDto) {
+    console.log(`📥 Evento stockEdited ricevuto da ${data.source}:`, {
+      barCode: data.barCode,
+      warehouseId: data.warehouseId,
+      quantity: data.quantity
+    });
 
-  // Da cambiare il nome dell'evento con quello concreto
+    try {
+      // Chiama il metodo syncEditStock esistente
+      await this.eventsService.syncEditStock(data);
+      
+      console.log(`✅ Stock sincronizzato nel cloud per ${data.barCode}`);
+      
+      return { 
+        success: true, 
+        message: `Stock ${data.barCode} sincronizzato`,
+        warehouseId: data.warehouseId
+      };
+    } catch (error) {
+      console.error(`❌ Errore sincronizzazione:`, error);
+      return { 
+        success: false, 
+        message: error.message 
+      };
+    }
+  }
+
   @EventPattern('stockAdded')
-  stockAdded(@Payload() stockAddedDto: StockAddedDto) {
-    console.log(stockAddedDto);
-    //this.eventsService.stockAdded(stockAddedDto);
+  async handleStockAdded(@Payload() data: SyncEventDto) {
+    console.log(`📥 Evento stockAdded ricevuto da ${data.source}:`, {
+      barCode: data.barCode,
+      warehouseId: data.warehouseId,
+      quantity: data.quantity
+    });
+
+    try {
+      // Chiama il metodo syncAddStock esistente
+      await this.eventsService.syncAddStock(data);
+      
+      console.log(`✅ Stock sincronizzato nel cloud per ${data.barCode}`);
+      
+      return { 
+        success: true, 
+        message: `Stock ${data.barCode} sincronizzato`,
+        warehouseId: data.warehouseId
+      };
+    } catch (error) {
+      console.error(`❌ Errore sincronizzazione:`, error);
+      return { 
+        success: false, 
+        message: error.message 
+      };
+    }
   }
 
   @EventPattern('stockRemoved')
-  stockRemoved(@Payload() stockRemovedDto: StockRemovedDto) {
-    console.log(stockRemovedDto);
-    //this.eventsService.stockRemoved(stockRemovedDto);
-  }
+  async handleStockRemoved(@Payload() data: SyncEventDto) {
+    console.log(`📥 Evento stockRemoved ricevuto da ${data.source}:`, {
+      barCode: data.barCode,
+      warehouseId: data.warehouseId,
+      quantity: data.quantity
+    });
 
-  @EventPattern('stockModified')
-  stockModified(@Payload() stockModifiedDto: StockAddedDto) {
-    console.log(stockModifiedDto);
-    //TODO: Implementa la logica per gestire l'evento stockModified
+    try {
+      // Chiama il metodo syncRemoveStock esistente
+      await this.eventsService.syncRemoveStock(data);
+      
+      console.log(`✅ Stock rimosso dal cloud per ${data.barCode}`);
+      
+      return { 
+        success: true, 
+        message: `Stock ${data.barCode} rimosso`,
+        warehouseId: data.warehouseId
+      };
+    } catch (error) {
+      console.error(`❌ Errore sincronizzazione:`, error);
+      return { 
+        success: false, 
+        message: error.message 
+      };
+    }
   }
 }

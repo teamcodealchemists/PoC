@@ -35,7 +35,15 @@ import { AppController } from 'src/interfaces/http/app.controller';
   controllers: [AppController],
   providers: [
     AppService,
-        { provide: 'InventoryRepository', useClass: InventoryRepositoryMongo },
+        {
+      provide: 'InventoryRepository',
+      useClass: InventoryRepositoryMongo,
+    },
+    InventoryRepositoryMongo
   ],
+  exports: [
+    InventoryRepositoryMongo,
+    'InventoryRepository'
+  ]
 })
 export class MongoModule {}
