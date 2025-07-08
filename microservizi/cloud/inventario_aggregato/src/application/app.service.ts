@@ -14,10 +14,6 @@ export class AppService {
     return this.inventoryRepo.findAllProduct();
   }
 
-  async getInventory() {
-    return this.inventoryRepo.findAll();
-  }
-
   async findAll() {
     return this.inventoryRepo.findAll();
   }

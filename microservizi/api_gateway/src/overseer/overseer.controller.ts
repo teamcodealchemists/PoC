@@ -30,6 +30,42 @@ export class OverseerController {
 
     //------------------------------------------
     //
+    // API relative alla gestione dell'INVENTARIO CLOUD
+    //
+    //------------------------------------------
+
+    @Get('inventoryCloudStatus')
+    async getInventoryCloudStatus(): Promise<string> {
+        const pattern = { cmd: 'getStatusInventoryCloud' };
+        try {
+            return await lastValueFrom(this.natsClient.send(pattern, {}));
+        } catch (error) {
+            throw new HttpException(error?.message || 'Error fetching inventory cloud status', error?.code || 500);
+        }
+    }
+
+    @Get('getAllProduct')
+    async getAllProduct(): Promise<any> {
+        const pattern = { cmd: 'getAllProduct' };
+        try {
+            return await lastValueFrom(this.natsClient.send(pattern, {}));
+        } catch (error) {
+            throw new HttpException(error?.message || 'Error fetching all products', error?.code || 500);
+        }
+    }
+
+    @Get('getAllInventory')
+    async getAllInventory(): Promise<any> {
+        const pattern = { cmd: 'getAllInventory' };
+        try {
+            return await lastValueFrom(this.natsClient.send(pattern, {}));
+        } catch (error) {
+            throw new HttpException(error?.message || 'Error fetching all inventory', error?.code || 500);
+        }
+    }
+
+    //------------------------------------------
+    //
     // API relative alla gestione dell'INVENTARIO dei magazzini
     //
     //------------------------------------------
@@ -63,7 +99,7 @@ export class OverseerController {
     }
   }
 
-  @Get('warehouseInventory/:warehouseId')
+  @Get('getWarehouseInventory/:warehouseId')
     async getWarehouseInventory(@Param('warehouseId') warehouseId: string) {
         const pattern = { cmd: `getWarehouseInventory.${warehouseId}` };
         try {

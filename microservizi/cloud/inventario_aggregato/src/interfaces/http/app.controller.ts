@@ -1,33 +1,22 @@
-import { Controller, Get, Post, Param, Body } from '@nestjs/common';
+import { Controller } from '@nestjs/common';
+import { MessagePattern } from '@nestjs/microservices';
 import { AppService } from '../../application/app.service';
-// import { CreaProdottoDto } from './dto/crea-prodotto.dto';
-// import { AggiornaQuantitaDto } from './dto/aggiorna-quantita.dto'
 
 @Controller()
 export class AppController {
   constructor(private readonly appService: AppService) {}
 
-  @Get()
-  getHello(): string {
-    return 'Hello World!';
-  }
-
-  @Get('whoareyou')
+  @MessagePattern({ cmd: 'getStatusInventoryCloud' })
   async getInfo(): Promise<string> {
-    return `Ciao! Sono il servizio di aggregazione Cloud!`;
+    return `Hello i am the Cloud inventory aggregation service!`;
   }
 
-  @Get('findAllProduct')
+  @MessagePattern({ cmd: 'getAllProduct' })
   findAllProduct() {
     return this.appService.findAllProduct();
   }
 
-  @Get('inventario')
-  getInventory() {
-    return this.appService.getInventory();
-  }
-
-  @Get('findAll')
+  @MessagePattern({ cmd: 'getAllInventory' })
   async findAll() {
     return this.appService.findAll();
   }
