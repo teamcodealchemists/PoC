@@ -9,6 +9,8 @@ Proof of Concept (PoC) per dei microservizi in [NestJS](https://nestjs.com/) con
 - [npm (>= 9.x)](https://www.npmjs.com/)
 - [Docker (>= 24.x.x)](https://www.docker.com/get-started)
 - [Docker Compose (>= 2.37.x)](https://docs.docker.com/compose/)
+- 2+ CPU cores and 4GB+ RAM
+- Almeno 20GB di spazio libero
 
 ## Avvio rapido
 
