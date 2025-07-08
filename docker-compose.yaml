@@ -17,6 +17,7 @@ services:
     depends_on:
       - mongo
       - nats
+      - inventario-aggregato
 
   ordini:
     container_name: ordini
@@ -62,6 +63,7 @@ services:
       - ./microservizi/cloud/inventario_aggregato/src:/usr/src/app/src
     depends_on:
       - mongo
+      - nats
 
   nats:
      container_name: nats

@@ -10,10 +10,9 @@ import { ClientProxy } from '@nestjs/microservices';
 @Injectable()
 export class InventoryHandlerService {
   constructor(
-    @Inject('InventoryRepository')
-    private readonly inventoryRepository: InventoryRepositoryMongo,
+    @Inject('InventoryRepository') private readonly inventoryRepository: InventoryRepositoryMongo,
     @Inject('NATS_SERVICE') private readonly natsClient: ClientProxy
-  ) {}
+  ) { }
 
   async addProduct(dto: AddProductDto): Promise<void> {
     const product = await this.inventoryRepository.findById(dto.id);
@@ -32,7 +31,7 @@ export class InventoryHandlerService {
     );
 
     await this.inventoryRepository.addProduct(newProduct);
-    
+
     //Evento strutturato per il cloud
     const syncEvent = {
       barCode: newProduct.getId().toString(),
@@ -80,7 +79,7 @@ export class InventoryHandlerService {
   async removeProduct(id: IdDto): Promise<void> {
     // Prima trova il prodotto per verificare la quantità
     const product = await this.inventoryRepository.findById(id.id);
-    
+
     if (!product) {
       throw new Error('Product not found');
     }
@@ -93,7 +92,7 @@ export class InventoryHandlerService {
 
     // Se la quantità è zero, procedi con la rimozione
     const res = await this.inventoryRepository.removeById(id.id);
-    
+
     if (!res) {
       throw new Error('Failed to remove product from repository');
     }
@@ -141,7 +140,7 @@ export class InventoryHandlerService {
     );
 
     await this.inventoryRepository.updateProduct(reqBody.id, updatedProduct);
-     
+
     // Modifica l'evento per essere compatibile con il cloud
     const syncEvent = {
       barCode: updatedProduct.getId().toString(), // Solo l'ID come stringa
@@ -157,9 +156,9 @@ export class InventoryHandlerService {
     };
     console.log('type di barCode:', syncEvent.barCode, typeof syncEvent.barCode);
     console.log('type di warehouseId:', syncEvent.warehouseId, typeof syncEvent.warehouseId);
-    try{
+    try {
       this.natsClient.emit('stockEdited', syncEvent);
-      
+
       console.log(`📤 Evento stockEdited inviato per prodotto ${reqBody.id}`);
     } catch (error) {
       console.error(`❌ Errore durante l'invio dell'evento stockEdited:`, error);
