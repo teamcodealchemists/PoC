@@ -1,0 +1,121 @@
+services:
+  inventario:
+    container_name: inventario
+    build: 
+      context: ./microservizi/magazzino/inventario
+      dockerfile: Dockerfile
+    ports:
+      - "3000:3000"
+    networks:
+      - net-magazzino
+    environment:
+      - PORT=3000
+      - WAREHOUSE_ID=1
+      - MONGO_URL=mongodb://mongo:27017/inventory
+    volumes:
+      - ./microservizi/magazzino/inventario/src:/usr/src/app/src
+    depends_on:
+      - mongo
+      - nats
+      - inventario-aggregato
+
+  ordini:
+    container_name: ordini
+    build: 
+      context: ./microservizi/magazzino/ordini
+      dockerfile: Dockerfile
+    ports:
+      - "3001:3000"
+    networks:
+      - net-magazzino
+    environment:
+      - PORT=3000
+      - WAREHOUSE_ID=1
+      - MONGO_URL=mongodb://mongo:27017/inventory
+    volumes:
+      - ./microservizi/magazzino/ordini/src:/usr/src/app/src
+    depends_on:
+      - mongo
+      - nats
+
+  mongo:
+    image: mongo:latest
+    container_name: mongo
+    ports:
+      - "27017:27017"
+    networks:
+      - net-magazzino
+    volumes:
+      - ./microservizi/mongo_db:/docker-entrypoint-initdb.d
+
+  inventario-aggregato:
+    build:
+      context: ./microservizi/cloud/inventario_aggregato
+      dockerfile: Dockerfile
+    ports:
+      - "3010:3010"
+    networks:
+      - net-magazzino
+    environment:
+      - PORT=3010
+      - MONGO_URL=mongodb://mongo:27017/inv_aggregato_db
+    volumes:
+      - ./microservizi/cloud/inventario_aggregato/src:/usr/src/app/src
+    depends_on:
+      - mongo
+      - nats
+
+  nats:
+     container_name: nats
+     image: nats:latest
+     ports:
+       - "4222:4222"
+     command:
+       - "--jetstream"
+       - "--debug"
+       - "--trace"
+     networks:
+       - net-magazzino
+     
+
+  api-gateway:
+    container_name: api-gateway
+    build: 
+      context: ./microservizi/api_gateway
+      dockerfile: Dockerfile
+    ports:
+      - "8080:8080" # Gateway API
+    environment:
+      - PORT=8080
+      - NATS_URL=nats://nats:4222
+    networks:
+      - net-magazzino
+    volumes:
+      - ./microservizi/api_gateway:/usr/src/app/src
+    depends_on:
+      - inventario
+      - ordini
+      - nats
+
+networks:
+  net-magazzino:
+    driver: bridge
+
+  #--------------------------------------#
+
+  # inventario-a:
+  #   build: ./MagazzinoA/inventario-a
+  #   image: swe/inventario-a
+  #   ports:
+  #     - "8080:3000"
+  #   networks:
+  #     - net-magazzino
+  # ordini-a:
+  #   build: ./MagazzinoA/ordini-a
+  #   image: swe/ordini-a
+  #   ports:
+  #     - "8081:3000"
+  #   networks:
+  #     - net-magazzino
+
+
