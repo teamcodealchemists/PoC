@@ -5,20 +5,45 @@ import {
   NotFoundException,
   HttpException,
   HttpStatus,
+  UseInterceptors
 } from '@nestjs/common';
-import { MessagePattern, Payload } from '@nestjs/microservices';
+import { MessagePattern, Payload, EventPattern, Ctx, NatsContext } from '@nestjs/microservices';
 import { ConfigService } from '@nestjs/config';
 
 import { InventoryHandlerService } from 'src/application/inventoryHandler.service';
 import { AddProductDto } from './dto/addProduct.dto';
 import { IdDto } from './dto/id.dto';
 import { EditProductDto } from './dto/editProduct.dto';
+import { NatsPayloadInterceptor } from './nats.interceptor';
 
 const conf = new ConfigService();
 
 @Controller()
 export class AppController {
-  constructor(private readonly inventoryHandler: InventoryHandlerService) {}
+  constructor(
+    private readonly inventoryHandler: InventoryHandlerService
+  ) {}
+
+  // PROBLEMA: NestJS is aspetta un campo data e id nell'oggetto di richiesta message pattern NATS, ma il bro resgate non lo invia.
+
+  // POSSIBILE SOLUZIONE: Usare un interceptor ed infilarlo manualmente prima che arrivi al controller in locale.
+
+  // SI USANO I SERIALIZZATORI E DESERIALIZZATORI PER TRASFORMARE I DATI INVIATI E RICEVUTI DA NATS.
+
+  // curl http://localhost:8081/api/example/model
+
+  // nats request ilovenats '{\"data\":\"hello\",\"id\":\"123\"}'
+
+  @MessagePattern('ilovenats')
+  async handleTestMessage(@Payload() data: any): Promise<any> {
+    try {
+      console.log('Received NATS message:', data);
+      return { message: `Hello from NATS! You sent: ${JSON.stringify(data)}` };
+    } catch (err) {
+      console.error('Handler error:', err);
+      return { error: err.message };
+    }
+  }
 
   // ==========================================
   // DIAGNOSTIC & READ FUNCTIONS
@@ -35,82 +60,116 @@ export class AppController {
   }
 
   /**
-   * Get a product by its ID.
-   * Throws 404 if not found.
+   * Handles get request for the example model.
+   * Uses @MessagePattern for request-response communication.
    */
-  @MessagePattern({ cmd: `getWarehouseProduct.${process.env.WAREHOUSE_ID}` })
-  @UsePipes(new ValidationPipe({ transform: true, whitelist: true }))
-  async getProductById(@Payload() idDto: IdDto) {
-    try {
-      return await this.inventoryHandler.findProductById(idDto);
-    } catch (error) {
-      return { error: error.message, status: 'failed' };
-    }
-  }
-
-  /**
-   * Get the full inventory for the warehouse.
-   */
-  @MessagePattern({ cmd: `getWarehouseInventory.${process.env.WAREHOUSE_ID}` })
-  async getInventory() {
-    try {
-      const items = await this.inventoryHandler.getInventory();
-      return { data: items };
-    } catch (error) {
-      return { error: error.message, status: 'failed' };
-    }
-  }
-
-  // ==========================================
-  // WRITE FUNCTIONS
-  // ==========================================
-
-  /**
-   * Add a new product to the warehouse.
-   * Returns error if the product already exists.
-   */
-  @MessagePattern({ cmd: `addProduct.${process.env.WAREHOUSE_ID}` })
-  async addProduct(@Payload() newProduct: AddProductDto) {
-    console.log(`Adding product to warehouse ${process.env.WAREHOUSE_ID}:`, newProduct);
-    try {
-      await this.inventoryHandler.addProduct(newProduct);
-      return { success: true, message: `Product added to warehouse ${process.env.WAREHOUSE_ID}` };
-    } catch (error) {
-      return { error: error.message, status: 'failed' };
-    }
-  }
-
-  /**
-   * Remove a product from the warehouse by ID.
-   */
-  @MessagePattern({ cmd: `removeProduct.${process.env.WAREHOUSE_ID}`})
-  async removeProduct(@Payload() idDto: IdDto) {
-    console.log(`Removing product from warehouse ${process.env.WAREHOUSE_ID}:`, idDto.id);
+  
+  @UseInterceptors(NatsPayloadInterceptor)
+  @MessagePattern('get.example.model')
+  async getExampleModel(@Payload() data: any): Promise<string> {
+    console.log('Received NATS message:', data);
     
-    try {
-      await this.inventoryHandler.removeProduct(idDto);
-      return { 
-        success: true, 
-        message: `Product ${idDto.id} removed from warehouse ${process.env.WAREHOUSE_ID}` 
-      };
-    } catch (error) {
-      return { message: error.message, success:false, code:400};
-    }
+    const response = {
+      result: {
+        model: {
+          message: 'Hello, World!',
+        },
+      },
+    };
+
+    console.log('Sending response:', response);
+    return Promise.resolve(JSON.stringify(response));
   }
 
   /**
-   * Edit an existing product in the warehouse.
+   * Handles access request for the example model.
+   * Uses @MessagePattern for request-response communication.
    */
-  @MessagePattern({ cmd: `editProduct.${process.env.WAREHOUSE_ID}` })
-  async editProduct(@Payload() body: EditProductDto) {
-    try {
-      await this.inventoryHandler.editProduct(body);
-      return {
-        success: true,
-        message: `Product ${body.id} edited in warehouse ${process.env.WAREHOUSE_ID}`,
-      };
-    } catch (error) {
-      return { error: error.message, status: 'failed' };
-    }
+  @UseInterceptors(NatsPayloadInterceptor)
+  @MessagePattern('access.example.model')
+  async accessExampleModel(@Payload() data: any): Promise<{ result: { get: boolean } }> {
+    console.log('Received NATS message for: access.example.model');
+    console.log('Data:', data);
+    return Promise.resolve({ result: { get: true } });
   }
+
+  ///**
+  // * Get a product by its ID.
+  // * Throws 404 if not found.
+  // */
+  //@MessagePattern({ cmd: `getWarehouseProduct.${process.env.WAREHOUSE_ID}` })
+  //@UsePipes(new ValidationPipe({ transform: true, whitelist: true }))
+  //async getProductById(@Payload() idDto: IdDto) {
+  //  try {
+  //    return await this.inventoryHandler.findProductById(idDto);
+  //  } catch (error) {
+  //    return { error: error.message, status: 'failed' };
+  //  }
+  //}
+//
+  ///**
+  // * Get the full inventory for the warehouse.
+  // */
+  //@MessagePattern({ cmd: `getWarehouseInventory.${process.env.WAREHOUSE_ID}` })
+  //async getInventory() {
+  //  try {
+  //    const items = await this.inventoryHandler.getInventory();
+  //    return { data: items };
+  //  } catch (error) {
+  //    return { error: error.message, status: 'failed' };
+  //  }
+  //}
+//
+  //// ==========================================
+  //// WRITE FUNCTIONS
+  //// ==========================================
+//
+  ///**
+  // * Add a new product to the warehouse.
+  // * Returns error if the product already exists.
+  // */
+  //@MessagePattern({ cmd: `addProduct.${process.env.WAREHOUSE_ID}` })
+  //async addProduct(@Payload() newProduct: AddProductDto) {
+  //  console.log(`Adding product to warehouse ${process.env.WAREHOUSE_ID}:`, newProduct);
+  //  try {
+  //    await this.inventoryHandler.addProduct(newProduct);
+  //    return { success: true, message: `Product added to warehouse ${process.env.WAREHOUSE_ID}` };
+  //  } catch (error) {
+  //    return { error: error.message, status: 'failed' };
+  //  }
+  //}
+//
+  ///**
+  // * Remove a product from the warehouse by ID.
+  // */
+  //@MessagePattern({ cmd: `removeProduct.${process.env.WAREHOUSE_ID}`})
+  //async removeProduct(@Payload() idDto: IdDto) {
+  //  console.log(`Removing product from warehouse ${process.env.WAREHOUSE_ID}:`, idDto.id);
+  //  
+  //  try {
+  //    await this.inventoryHandler.removeProduct(idDto);
+  //    return { 
+  //      success: true, 
+  //      message: `Product ${idDto.id} removed from warehouse ${process.env.WAREHOUSE_ID}` 
+  //    };
+  //  } catch (error) {
+  //    return { message: error.message, success:false, code:400};
+  //  }
+  //}
+//
+  ///**
+  // * Edit an existing product in the warehouse.
+  // */
+  //@MessagePattern({ cmd: `editProduct.${process.env.WAREHOUSE_ID}` })
+  //async editProduct(@Payload() body: EditProductDto) {
+  //  try {
+  //    await this.inventoryHandler.editProduct(body);
+  //    return {
+  //      success: true,
+  //      message: `Product ${body.id} edited in warehouse ${process.env.WAREHOUSE_ID}`,
+  //    };
+  //  } catch (error) {
+  //    return { error: error.message, status: 'failed' };
+  //  }
+  //}
 }

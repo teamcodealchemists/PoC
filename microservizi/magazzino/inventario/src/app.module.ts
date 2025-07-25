@@ -9,6 +9,7 @@ import { SagaMessagesModule } from './interfaces/http/saga-messages/saga-message
 import { MongoModule } from './infrastructure/adapters/mongo_db/mongo.module';
 import { NatsClientModule } from './nats-client/nats-client.module';
 import { BootstrapModule } from './application/bootstrap.module';
+import { NatsPayloadInterceptor } from './interfaces/http/nats.interceptor';
 
 @Module({
   imports: [

@@ -76,7 +76,23 @@ services:
        - "--trace"
      networks:
        - net-magazzino
-     
+
+  resgate:
+    image: resgateio/resgate
+    container_name: resgate
+    ports:
+      - "8081:8080"
+    depends_on:
+      - nats
+    #volumes:
+    #  - ./microservizi/resgate/resgate-config.json:/app/config.json
+    command: 
+      - "-n"
+      - "nats://nats:4222"
+      - "-DV"
+    networks:
+      - net-magazzino
+    
 
   api-gateway:
     container_name: api-gateway
