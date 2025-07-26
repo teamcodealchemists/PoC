@@ -4,8 +4,7 @@ import {
   ValidationPipe,
   NotFoundException,
   HttpException,
-  HttpStatus,
-  UseInterceptors
+  HttpStatus
 } from '@nestjs/common';
 import { MessagePattern, Payload, EventPattern, Ctx, NatsContext } from '@nestjs/microservices';
 import { ConfigService } from '@nestjs/config';
@@ -14,7 +13,7 @@ import { InventoryHandlerService } from 'src/application/inventoryHandler.servic
 import { AddProductDto } from './dto/addProduct.dto';
 import { IdDto } from './dto/id.dto';
 import { EditProductDto } from './dto/editProduct.dto';
-import { NatsPayloadInterceptor } from './nats.interceptor';
+
 
 const conf = new ConfigService();
 
@@ -36,14 +35,49 @@ export class AppController {
 
   @MessagePattern('ilovenats')
   async handleTestMessage(@Payload() data: any): Promise<any> {
-    try {
-      console.log('Received NATS message:', data);
-      return { message: `Hello from NATS! You sent: ${JSON.stringify(data)}` };
-    } catch (err) {
-      console.error('Handler error:', err);
-      return { error: err.message };
-    }
+    console.log('Received NATS message:', data);
+    return `Hello from NATS! You sent: ${data}`;
   }
+
+
+  // ==========================================
+  // TEST RESGATE FUNCTIONS
+  // ==========================================
+
+  /**
+   * Handles get request for the example model.
+   * Uses @MessagePattern for request-response communication.
+   */
+  
+  @MessagePattern('get.example.model')
+  async getExampleModel(@Payload() data: any): Promise<{ result: { model: {message: any} } }> {
+    console.log('Received NATS message for: get.example.model');
+    console.log('Data:', data);
+    
+    const response = {
+      result: {
+        model: {
+          message: 'Hello, World!',
+        },
+      },
+    };
+
+    console.log('Sending response:', response);
+    return Promise.resolve(response);
+  }
+
+  /**
+   * Handles access request for the example model.
+   * Uses @MessagePattern for request-response communication.
+   */
+  @MessagePattern('access.example.model')
+  async accessExampleModel(@Payload() data: any): Promise<{ result: { get: boolean } }> {
+    console.log('Received NATS message for: access.example.model');
+    console.log('Data:', data);
+    return Promise.resolve({ result: { get: true } });
+  }
+
+
 
   // ==========================================
   // DIAGNOSTIC & READ FUNCTIONS
@@ -59,39 +93,6 @@ export class AppController {
     return `Hello, I am warehouse '${process.env.WAREHOUSE_ID}' and I have ${totalQuantity} products`;
   }
 
-  /**
-   * Handles get request for the example model.
-   * Uses @MessagePattern for request-response communication.
-   */
-  
-  @UseInterceptors(NatsPayloadInterceptor)
-  @MessagePattern('get.example.model')
-  async getExampleModel(@Payload() data: any): Promise<string> {
-    console.log('Received NATS message:', data);
-    
-    const response = {
-      result: {
-        model: {
-          message: 'Hello, World!',
-        },
-      },
-    };
-
-    console.log('Sending response:', response);
-    return Promise.resolve(JSON.stringify(response));
-  }
-
-  /**
-   * Handles access request for the example model.
-   * Uses @MessagePattern for request-response communication.
-   */
-  @UseInterceptors(NatsPayloadInterceptor)
-  @MessagePattern('access.example.model')
-  async accessExampleModel(@Payload() data: any): Promise<{ result: { get: boolean } }> {
-    console.log('Received NATS message for: access.example.model');
-    console.log('Data:', data);
-    return Promise.resolve({ result: { get: true } });
-  }
 
   ///**
   // * Get a product by its ID.

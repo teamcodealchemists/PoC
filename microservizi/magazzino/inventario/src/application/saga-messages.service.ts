@@ -1,5 +1,5 @@
 import { ConcreteProduct } from 'src/domain/core/concreteProduct';
-import { CheckProductDto } from './../interfaces/http/dto/checkProduct.dto';
+import { CheckProductDto } from '../interfaces/nats/dto/checkProduct.dto';
 import { Inject, Injectable } from '@nestjs/common';
 import { InventoryRepositoryMongo } from 'src/infrastructure/adapters/mongo_db/inventory.repository.impl';
 import { ClientProxy } from '@nestjs/microservices';

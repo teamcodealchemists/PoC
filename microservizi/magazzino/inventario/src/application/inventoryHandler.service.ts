@@ -1,9 +1,9 @@
 import { InventoryRepositoryMongo } from 'src/infrastructure/adapters/mongo_db/inventory.repository.impl';
 import { Injectable, Inject, NotFoundException } from '@nestjs/common';
 import { ConcreteProduct } from "src/domain/core/concreteProduct";
-import { AddProductDto } from "src/interfaces/http/dto/addProduct.dto";
-import { IdDto } from "src/interfaces/http/dto/id.dto";
-import { EditProductDto } from "src/interfaces/http/dto/editProduct.dto";
+import { AddProductDto } from "src/interfaces/nats/dto/addProduct.dto";
+import { IdDto } from "src/interfaces/nats/dto/id.dto";
+import { EditProductDto } from "src/interfaces/nats/dto/editProduct.dto";
 import { ClientProxy } from '@nestjs/microservices';
 
 
