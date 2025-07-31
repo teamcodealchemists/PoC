@@ -70,11 +70,11 @@ export class AppController {
    * Handles access request for the example model.
    * Uses @MessagePattern for request-response communication.
    */
-  @MessagePattern('access.example.model')
+  @MessagePattern('access.>')
   async accessExampleModel(@Payload() data: any): Promise<{ result: { get: boolean } }> {
     console.log('Received NATS message for: access.example.model');
     console.log('Data:', data);
-    return Promise.resolve({ result: { get: true } });
+    return Promise.resolve({ result: { get: true, call:"*" } });
   }
 
 
@@ -94,33 +94,49 @@ export class AppController {
   }
 
 
-  ///**
-  // * Get a product by its ID.
-  // * Throws 404 if not found.
-  // */
-  //@MessagePattern({ cmd: `getWarehouseProduct.${process.env.WAREHOUSE_ID}` })
-  //@UsePipes(new ValidationPipe({ transform: true, whitelist: true }))
-  //async getProductById(@Payload() idDto: IdDto) {
-  //  try {
-  //    return await this.inventoryHandler.findProductById(idDto);
-  //  } catch (error) {
-  //    return { error: error.message, status: 'failed' };
-  //  }
-  //}
-//
-  ///**
-  // * Get the full inventory for the warehouse.
-  // */
-  //@MessagePattern({ cmd: `getWarehouseInventory.${process.env.WAREHOUSE_ID}` })
-  //async getInventory() {
-  //  try {
-  //    const items = await this.inventoryHandler.getInventory();
-  //    return { data: items };
-  //  } catch (error) {
-  //    return { error: error.message, status: 'failed' };
-  //  }
-  //}
-//
+  /**
+   * Get a product by its ID.
+   * Throws 404 if not found.
+   */
+  @MessagePattern(`get.warehouses.${process.env.WAREHOUSE_ID}`)
+  async getProductById(@Payload("productsId") id : IdDto): Promise<any> {
+    console.log(`Searching for product with ID: ${id.id} in warehouse ${process.env.WAREHOUSE_ID}`);
+    const productString = await this.inventoryHandler.findProductById(id);
+    console.log('Product found:', productString);
+    try {
+      return {
+        "result": {
+          "model": { data: productString }
+        }
+      }
+    } catch (error) {
+      return {
+        "error": {
+          "code": "system.notFound",
+          "message": error.message
+        }
+      }
+    }
+  }
+
+  /**
+   * Get the full inventory for the warehouse.
+   */
+  @MessagePattern(`get.warehouse.inventory.${process.env.WAREHOUSE_ID}`)
+  async getInventory() {
+    try {
+      const items = await this.inventoryHandler.getInventory();
+      return {
+        "result": {
+          "model": { data: items }
+        }
+      };
+
+    } catch (error) {
+      return { error: error.message, status: 'failed' };
+    }
+  }
+
   //// ==========================================
   //// WRITE FUNCTIONS
   //// ==========================================
