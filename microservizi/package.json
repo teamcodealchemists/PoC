@@ -1,0 +1,29 @@
+{
+  "name": "magazzino",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "test": "npm-run-all test:*",
+    "test:inventario": "cd magazzino/inventario && npm test",
+    "test:ordini": "cd magazzino/ordini && npm test",
+
+    "test:watch": "npm-run-all test:watch:*",
+    "test:watch:inventario": "cd magazzino/inventario && npm run test:watch",
+    "test:watch:ordini": "cd magazzino/ordini && npm run test:watch",
+
+    "test:cov": "npm-run-all test:cov:*",
+    "test:cov:inventario": "cd magazzino/inventario && npm run test:cov",
+    "test:cov:ordini": "cd magazzino/ordini && npm run test:cov",
+
+    "test:debug": "npm-run-all test:debug:*",
+    "test:debug:inventario": "cd magazzino/inventario && npm run test:debug",
+    "test:debug:ordini": "cd magazzino/ordini && npm run test:debug",
+
+    "test:e2e": "npm-run-all test:e2e:*",
+    "test:e2e:inventario": "cd magazzino/inventario && npm run test:e2e",
+    "test:e2e:ordini": "cd magazzino/ordini && npm run test:e2e"
+  },
+  "devDependencies": {
+    "npm-run-all": "^4.1.5"
+  }
+}

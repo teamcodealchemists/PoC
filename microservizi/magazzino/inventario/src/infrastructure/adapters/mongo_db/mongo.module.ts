@@ -6,7 +6,9 @@ import { InventoryRepositoryMongo } from './inventory.repository.impl';
 
 @Module({
     imports: [
-        ConfigModule.forRoot(),
+        ConfigModule.forRoot({
+            isGlobal: true
+        }),
         MongooseModule.forRoot(process.env.MONGO_URL || 'mongodb://mongo:27017/inventory'),
         MongooseModule.forFeature([
             { name: InventoryMongo.name, schema: InventorySchema },

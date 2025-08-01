@@ -1,7 +1,7 @@
-import { InventoryHandlerService } from './inventoryHandler.service';
-import { AddProductDto } from 'src/interfaces/http/dto/addProduct.dto';
-import { EditProductDto } from 'src/interfaces/http/dto/editProduct.dto';
-import { ConcreteProduct } from 'src/domain/core/concreteProduct';
+import { InventoryHandlerService } from '../../src/application/inventoryHandler.service';
+import { AddProductDto } from '../../src/interfaces/http/dto/addProduct.dto';
+import { EditProductDto } from '../../src/interfaces/http/dto/editProduct.dto';
+import { ConcreteProduct } from '../../src/domain/core/concreteProduct';
 
 // Mock del repository per isolare il servizio
 const mockRepository = (): any => ({
