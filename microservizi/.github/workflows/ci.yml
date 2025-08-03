@@ -1,0 +1,44 @@
+name: CI Monorepo
+
+on:
+  push:
+    branches: [ main, feature/studioTesting ]
+  pull_request:
+    branches: [ main, feature/studioTesting ]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    defaults:
+      run:
+        working-directory: microservizi
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v3
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: 22.16.0
+
+      - name: Install root dependencies
+        run: npm install
+
+      - name: Install Inventario dependencies
+        run: cd magazzino/inventario && npm install
+
+      - name: Install Ordini dependencies
+        run: cd magazzino/ordini && npm install || echo "No tests for ordini"
+
+      - name: Run all tests
+        run: npm run test
+
+      - name: Run and merge code coverage
+        run: npm run test:cov
+
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v4
+        with:
+          flags: monorepo

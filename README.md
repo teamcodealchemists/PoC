@@ -1,5 +1,8 @@
 # PoC: Sistema di Gestione di un Magazzino Distribuito
 
+[![CI](https://github.com/shualexwork/PoC-Warehouse/actions/workflows/ci.yml/badge.svg?branch=feature/studioTesting)](https://github.com/shualexwork/PoC-Warehouse/actions/workflows/ci.yml)
+[![codecov](https://codecov.io/gh/shualexwork/PoC-Warehouse/branch/feature/studioTesting/graph/badge.svg)](https://codecov.io/gh/shualexwork/PoC-Warehouse)
+
 ## Descrizione
 
 Proof of Concept (PoC) per dei microservizi in [NestJS](https://nestjs.com/) containerizzati e orchestrati tramite Docker Compose.
