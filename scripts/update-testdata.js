@@ -1,16 +1,13 @@
 const fs = require('fs');
 const path = require('path');
 
-function getProjectRoot() {
-  const cwd = process.cwd();
-  const match = cwd.match(/(.*PoC)(?:[\\/]+PoC)?$/); // cattura solo una volta PoC
-  return match ? match[1] : cwd;
-}
+// Percorso assoluto al file README.md partendo dalla root del progetto
+const readmePath = path.resolve(process.cwd(), 'README.md');
 
+// Funzione per leggere i dati di coverage da un microservizio
 function readCoverage(microservizio) {
-  const projectRoot = getProjectRoot();
   const coveragePath = path.resolve(
-    projectRoot,
+    process.cwd(),
     `microservizi/magazzino/${microservizio}/coverage/coverage-final.json`
   );
 
@@ -26,11 +23,13 @@ function readCoverage(microservizio) {
   return JSON.parse(fs.readFileSync(coveragePath, 'utf8'));
 }
 
+// Microservizi da analizzare
 const report = {
   inventario: readCoverage('inventario'),
   ordini: readCoverage('ordini'),
 };
 
+// Genera le righe della tabella
 const rows = Object.entries(report).map(([name, data]) => {
   const total = data?.total?.lines?.total ?? 0;
   const covered = data?.total?.lines?.covered ?? 0;
@@ -40,6 +39,7 @@ const rows = Object.entries(report).map(([name, data]) => {
   return `| ${name.charAt(0).toUpperCase() + name.slice(1)} | ${total} | ${covered} | ${failed} | ${coverage} |`;
 });
 
+// Intestazione della tabella + badge
 const tableHeader = `
 ## 📊 Test Coverage & Status
 
@@ -51,13 +51,13 @@ const codecovBadge = `\nBadge Codecov: [![codecov](https://codecov.io/gh/teamcod
 
 const newContent = tableHeader + rows.join('\n') + codecovBadge;
 
-const readmePath = path.resolve(getProjectRoot(), 'README.md');
-
+// Verifica se README.md esiste
 if (!fs.existsSync(readmePath)) {
   console.error(`❌ README.md non trovato in ${readmePath}`);
   process.exit(1);
 }
 
+// Aggiorna il contenuto della sezione coverage nel README
 const readme = fs.readFileSync(readmePath, 'utf8');
 
 const updated = readme.replace(

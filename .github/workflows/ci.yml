@@ -51,8 +51,8 @@ jobs:
           flags: monorepo
 
       - name: Update README test table
-        working-directory: scripts
-        run: node update-testdata.js
+        working-directory: .
+        run: node scripts/update-testdata.js
 
       - name: Commit updated README
         run: |
