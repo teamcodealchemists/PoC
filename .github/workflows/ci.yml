@@ -52,7 +52,7 @@ jobs:
 
       - name: Update README test table
         working-directory: ..
-        run: node scripts/update-readme.js
+        run: node scripts/update-testdata.js
 
       - name: Commit updated README
         working-directory: ..
