@@ -29,16 +29,6 @@ const report = {
   ordini: readCoverage('ordini'),
 };
 
-// Genera le righe della tabella
-const rows = Object.entries(report).map(([name, data]) => {
-  const total = data?.total?.lines?.total ?? 0;
-  const covered = data?.total?.lines?.covered ?? 0;
-  const failed = total - covered;
-  const coverage = total > 0 ? ((covered / total) * 100).toFixed(1) + '%' : 'N/A';
-
-  return `| ${name.charAt(0).toUpperCase() + name.slice(1)} | ${total} | ${covered} | ${failed} | ${coverage} |`;
-});
-
 // Intestazione della tabella + badge
 const tableHeader = `
 ## 📊 Test Coverage & Status
