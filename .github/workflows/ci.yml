@@ -49,7 +49,6 @@ jobs:
           flags: monorepo
 
       - name: Update README test table
-        working-directory: PoC
         run: node scripts/update-testdata.js
 
 

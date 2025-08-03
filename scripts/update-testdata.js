@@ -2,8 +2,8 @@ const fs = require('fs');
 const path = require('path');
 
 function readCoverage(microservizio) {
-  const coveragePath = path.resolve(__dirname, `../microservizi/magazzino/${microservizio}/coverage/coverage-summary.json`);
-  return JSON.parse(fs.readFileSync(coveragePath, 'utf8'));
+  const coveragePath = path.resolve(__dirname, `../../microservizi/magazzino/${microservizio}/coverage/coverage-summary.json`);
+  return JSON.parse(fs.readFileSync(coveragePath, 'utf8')); 
 }
 
 const report = {
