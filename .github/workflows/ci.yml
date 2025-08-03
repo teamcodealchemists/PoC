@@ -10,52 +10,48 @@ jobs:
   test:
     runs-on: ubuntu-latest
 
-    defaults:
-      run:
-        working-directory: .
-
     steps:
-      - name: 🛎️ Checkout repository
+      - name: Checkout repo
         uses: actions/checkout@v3
 
-      - name: 🧰 Setup Node.js
+      - name: Setup Node.js
         uses: actions/setup-node@v3
         with:
           node-version: 22.16.0
 
-      - name: 🐳 Start services with Docker Compose
+      - name: Start services with Docker Compose
         run: |
           docker compose up -d
           echo "⌛ Waiting for MongoDB and NATS to be ready..."
           sleep 10
 
-      - name: 📦 Install root dependencies
-        working-directory: ./microservizi
+      - name: Install root dependencies
+        working-directory: microservizi
         run: npm install
 
-      - name: 📦 Install Inventario dependencies
+      - name: Install Inventario dependencies
         run: cd microservizi/magazzino/inventario && npm install
 
-      - name: 📦 Install Ordini dependencies
+      - name: Install Ordini dependencies
         run: cd microservizi/magazzino/ordini && npm install || echo "No tests for ordini"
 
-      - name: 🧪 Run all tests
-        working-directory: ./microservizi
+      - name: Run all tests
+        working-directory: microservizi
         run: npm run test
 
-      - name: 🧪 Run and merge code coverage
-        working-directory: ./microservizi
+      - name: Run and merge code coverage
+        working-directory: microservizi
         run: npm run test:cov
 
-      - name: ☁️ Upload coverage to Codecov
+      - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v4
         with:
           flags: monorepo
 
-      - name: 📝 Update README test table
+      - name: Update README test table
         run: node scripts/update-testdata.js
 
-      - name: 🚀 Commit updated README
+      - name: Commit updated README
         run: |
           git config --global user.name 'github-actions'
           git config --global user.email 'actions@github.com'
