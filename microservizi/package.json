@@ -7,10 +7,6 @@
     "test:inventario": "cd magazzino/inventario && npm test",
     "test:ordini": "cd magazzino/ordini && npm test || exit 0",
 
-    "test:watch": "npm-run-all test:watch:*",
-    "test:watch:inventario": "cd magazzino/inventario && npm run test:watch",
-    "test:watch:ordini": "cd magazzino/ordini && npm run test:watch || exit 0",
-
     "test:cov": "npm-run-all test:cov:*",
     "test:cov:inventario": "cd magazzino/inventario && npm run test:cov",
     "test:cov:ordini": "cd magazzino/ordini && npm run test:cov || exit 0",
