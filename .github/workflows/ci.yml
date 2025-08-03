@@ -14,10 +14,6 @@ jobs:
       run:
         working-directory: microservizi
 
-    env:
-      MONGO_URL: mongodb://localhost:27017/inventory
-      NATS_URL: nats://localhost:4222  # opzionale, se i tuoi test leggono da process.env
-
     steps:
       - name: Checkout repo
         uses: actions/checkout@v3
@@ -27,15 +23,15 @@ jobs:
         with:
           node-version: 22.16.0
 
-      - name: Install root dependencies
-        run: npm install
-
       - name: Start services with Docker Compose
         working-directory: .
         run: |
-          docker-compose up -d
+          docker compose up -d
           echo "⌛ Waiting for MongoDB and NATS to be ready..."
           sleep 10
+
+      - name: Install root dependencies
+        run: npm install
 
       - name: Install Inventario dependencies
         run: cd magazzino/inventario && npm install
