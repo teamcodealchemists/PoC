@@ -3,21 +3,21 @@
   "version": "1.0.0",
   "private": true,
   "scripts": {
-    "test": "npm-run-all test:*",
+    "test": "npm-run-all test:inventario test:ordini",
     "test:inventario": "cd magazzino/inventario && npm test",
     "test:ordini": "cd magazzino/ordini && npm test || exit 0",
 
-    "test:cov": "npm-run-all test:cov:*",
+    "test:cov": "npm-run-all test:cov:inventario test:cov:ordini",
     "test:cov:inventario": "cd magazzino/inventario && npm run test:cov",
     "test:cov:ordini": "cd magazzino/ordini && npm run test:cov || exit 0",
 
-    "test:debug": "npm-run-all test:debug:*",
+    "test:debug": "npm-run-all test:debug:inventario test:debug:ordini",
     "test:debug:inventario": "cd magazzino/inventario && npm run test:debug",
     "test:debug:ordini": "cd magazzino/ordini && npm run test:debug || exit 0",
 
-    "test:e2e": "npm-run-all test:e2e:*",
+    "test:e2e": "npm-run-all test:e2e:inventario test:e2e:ordini",
     "test:e2e:inventario": "cd magazzino/inventario && npm run test:e2e",
-    "test:e2e:ordini": "cd magazzino/ordini && npm run test:e2e || exit 0" 
+    "test:e2e:ordini": "cd magazzino/ordini && npm run test:e2e || exit 0"
   },
   "devDependencies": {
     "npm-run-all": "^4.1.5"
