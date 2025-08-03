@@ -1,20 +1,20 @@
 const fs = require('fs');
 const path = require('path');
 
-// Percorsi assoluti ai file coverage JSON
-const inventarioPath = path.resolve(__dirname, '../microservizi/magazzino/inventario/coverage/coverage-summary.json');
-const ordiniPath = path.resolve(__dirname, '../microservizi/magazzino/ordini/coverage/coverage-summary.json');
+function readCoverage(microservizio) {
+  const coveragePath = path.resolve(__dirname, `../microservizi/magazzino/${microservizio}/coverage/coverage-summary.json`);
+  return JSON.parse(fs.readFileSync(coveragePath, 'utf8'));
+}
 
 const report = {
-  inventario: require(inventarioPath),
-  ordini: require(ordiniPath)
+  inventario: readCoverage('inventario'),
+  ordini: readCoverage('ordini')
 };
 
 const rows = Object.entries(report).map(([name, data]) => {
   const total = data.total.lines.total;
   const covered = data.total.lines.covered;
   const coverage = ((covered / total) * 100).toFixed(1) + '%';
-
   return `| ${name.charAt(0).toUpperCase() + name.slice(1)} | ${total} | ${covered} | ${total - covered} | ${coverage} |`;
 });
 
