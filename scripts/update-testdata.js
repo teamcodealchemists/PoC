@@ -2,9 +2,10 @@ const fs = require('fs');
 const path = require('path');
 
 const report = {
-  inventario: require('../microservizi/magazzino/inventario/coverage/coverage-summary.json'),
-  ordini: require('../microservizi/magazzino/ordini/coverage/coverage-summary.json')
+  inventario: require(path.resolve(__dirname, '../microservizi/magazzino/inventario/coverage/coverage-summary.json')),
+  ordini: require(path.resolve(__dirname, '../microservizi/magazzino/ordini/coverage/coverage-summary.json'))
 };
+
 
 const rows = Object.entries(report).map(([name, data]) => {
   const total = data.total.lines.total;
