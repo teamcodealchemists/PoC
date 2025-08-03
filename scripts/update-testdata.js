@@ -3,6 +3,7 @@ const path = require('path');
 
 function readCoverage(microservizio) {
   const coveragePath = path.resolve(__dirname, `../../microservizi/magazzino/${microservizio}/coverage/coverage-final.json`);
+  console.warn('File path: ${coveragePath}');
   return JSON.parse(fs.readFileSync(coveragePath, 'utf8')); 
 }
 
