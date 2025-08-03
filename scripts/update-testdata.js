@@ -2,10 +2,7 @@ const fs = require('fs');
 const path = require('path');
 
 function readCoverage(microservizio) {
-  const coveragePath = path.resolve(
-    process.cwd(),
-    `microservizi/magazzino/${microservizio}/coverage/coverage-final.json`
-  );
+  const coveragePath = path.resolve(`microservizi/magazzino/${microservizio}/coverage/coverage-final.json`);
 
   console.warn(`📂 File path: ${coveragePath}`);
 
