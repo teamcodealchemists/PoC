@@ -1,6 +1,13 @@
 # PoC: Sistema di Gestione di un Magazzino Distribuito
 
-[![CI](https://github.com/teamcodealchemists/PoC/actions/workflows/ci.yml/badge.svg?branch=feature/studioTesting)](https://github.com/teamcodealchemists/PoC/actions/workflows/ci.yml)
+## 📊 Test Coverage & Status
+
+| Microservizio | Tests Totali | Passati | Falliti | Coverage |
+|---------------|--------------|---------|---------|----------|
+| Inventario    | 16           | 16      | 0       | 92.4%    |
+| Ordini        | 0            | 0       | 0       | 0%       |
+
+Badge Codecov: [![CI](https://github.com/teamcodealchemists/PoC/actions/workflows/ci.yml/badge.svg?branch=feature/studioTesting)](https://github.com/teamcodealchemists/PoC/actions/workflows/ci.yml)
 [![codecov](https://codecov.io/gh/teamcodealchemists/PoC/branch/feature/studioTesting/graph/badge.svg)](https://codecov.io/gh/teamcodealchemists/PoC)
 
 ## Descrizione
