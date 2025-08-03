@@ -1,6 +1,6 @@
 # PoC: Sistema di Gestione di un Magazzino Distribuito
 
-[![CI](https://github.com/shualexwork/PoC-Warehouse/actions/workflows/ci.yml/badge.svg?branch=feature/studioTesting)](https://github.com/shualexwork/PoC-Warehouse/actions/workflows/ci.yml)
+[![CI](https://github.com/teamcodealchemists/PoC/actions/workflows/ci.yml/badge.svg?branch=feature/studioTesting)](https://github.com/teamcodealchemists/PoC/actions/workflows/ci.yml)
 [![codecov](https://codecov.io/gh/teamcodealchemists/PoC/branch/feature/studioTesting/graph/badge.svg)](https://codecov.io/gh/teamcodealchemists/PoC)
 
 ## Descrizione
