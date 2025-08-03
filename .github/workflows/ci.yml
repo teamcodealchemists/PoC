@@ -13,6 +13,8 @@ jobs:
     steps:
       - name: Checkout repo
         uses: actions/checkout@v3
+        with:
+          path: PoC
 
       - name: Setup Node.js
         uses: actions/setup-node@v3
@@ -20,27 +22,30 @@ jobs:
           node-version: 22.16.0
 
       - name: Start services with Docker Compose
+        working-directory: PoC
         run: |
           docker compose up -d
           echo "⌛ Waiting for MongoDB and NATS to be ready..."
           sleep 10
 
       - name: Install root dependencies
-        working-directory: microservizi
+        working-directory: PoC/microservizi
         run: npm install
 
       - name: Install Inventario dependencies
-        run: cd microservizi/magazzino/inventario && npm install
+        working-directory: PoC/microservizi/magazzino/inventario
+        run: npm install
 
       - name: Install Ordini dependencies
-        run: cd microservizi/magazzino/ordini && npm install || echo "No tests for ordini"
+        working-directory: PoC/microservizi/magazzino/ordini
+        run: npm install || echo "No tests for ordini"
 
       - name: Run all tests
-        working-directory: microservizi
+        working-directory: PoC/microservizi
         run: npm run test
 
       - name: Run and merge code coverage
-        working-directory: microservizi
+        working-directory: PoC/microservizi
         run: npm run test:cov
 
       - name: Upload coverage to Codecov
@@ -49,10 +54,11 @@ jobs:
           flags: monorepo
 
       - name: Update README test table
-        working-directory: ..
+        working-directory: PoC
         run: node scripts/update-testdata.js
 
       - name: Commit updated README
+        working-directory: PoC
         run: |
           git config --global user.name 'github-actions'
           git config --global user.email 'actions@github.com'
