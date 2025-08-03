@@ -53,7 +53,7 @@ jobs:
       - name: Update README test table
         run: |
           npm install fs path
-          node scripts/update-readme.js
+          node ../scripts/update-readme.js
 
       - name: Commit updated README
         run: |
