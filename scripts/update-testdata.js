@@ -1,11 +1,14 @@
 const fs = require('fs');
 const path = require('path');
 
-const report = {
-  inventario: require(path.resolve(__dirname, '../microservizi/magazzino/inventario/coverage/coverage-summary.json')),
-  ordini: require(path.resolve(__dirname, '../microservizi/magazzino/ordini/coverage/coverage-summary.json'))
-};
+// Percorsi assoluti ai file coverage JSON
+const inventarioPath = path.resolve(__dirname, '../microservizi/magazzino/inventario/coverage/coverage-summary.json');
+const ordiniPath = path.resolve(__dirname, '../microservizi/magazzino/ordini/coverage/coverage-summary.json');
 
+const report = {
+  inventario: require(inventarioPath),
+  ordini: require(ordiniPath)
+};
 
 const rows = Object.entries(report).map(([name, data]) => {
   const total = data.total.lines.total;
