@@ -1,8 +1,18 @@
 const fs = require('fs');
 const path = require('path');
 
+function getProjectRoot() {
+  const cwd = process.cwd();
+  const match = cwd.match(/(.*PoC)(?:[\\/]+PoC)?$/); // cattura solo una volta PoC
+  return match ? match[1] : cwd;
+}
+
 function readCoverage(microservizio) {
-  const coveragePath = path.resolve(`microservizi/magazzino/${microservizio}/coverage/coverage-final.json`);
+  const projectRoot = getProjectRoot();
+  const coveragePath = path.resolve(
+    projectRoot,
+    `microservizi/magazzino/${microservizio}/coverage/coverage-final.json`
+  );
 
   console.warn(`📂 File path: ${coveragePath}`);
 
@@ -22,8 +32,8 @@ const report = {
 };
 
 const rows = Object.entries(report).map(([name, data]) => {
-  const total = data.total.lines.total;
-  const covered = data.total.lines.covered;
+  const total = data?.total?.lines?.total ?? 0;
+  const covered = data?.total?.lines?.covered ?? 0;
   const failed = total - covered;
   const coverage = total > 0 ? ((covered / total) * 100).toFixed(1) + '%' : 'N/A';
 
@@ -41,7 +51,13 @@ const codecovBadge = `\nBadge Codecov: [![codecov](https://codecov.io/gh/teamcod
 
 const newContent = tableHeader + rows.join('\n') + codecovBadge;
 
-const readmePath = path.resolve(process.cwd(), 'README.md');
+const readmePath = path.resolve(getProjectRoot(), 'README.md');
+
+if (!fs.existsSync(readmePath)) {
+  console.error(`❌ README.md non trovato in ${readmePath}`);
+  process.exit(1);
+}
+
 const readme = fs.readFileSync(readmePath, 'utf8');
 
 const updated = readme.replace(
