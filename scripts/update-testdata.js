@@ -8,7 +8,7 @@ const readmePath = path.resolve(process.cwd(), 'README.md');
 function readCoverage(microservizio) {
   const coveragePath = path.resolve(
     process.cwd(),
-    `microservizi/magazzino/${microservizio}/coverage/coverage-final.json`
+    `microservizi/magazzino/${microservizio}/coverage/coverage-summary.json`
   );
 
   console.warn(`📂 File path: ${coveragePath}`);
@@ -28,6 +28,15 @@ const report = {
   inventario: readCoverage('inventario'),
   ordini: readCoverage('ordini'),
 };
+
+const rows = Object.entries(report).map(([name, data]) => {
+  const total = data?.total?.lines?.total ?? 0;
+  const covered = data?.total?.lines?.covered ?? 0;
+  const failed = total - covered;
+  const coverage = total > 0 ? ((covered / total) * 100).toFixed(1) + '%' : 'N/A';
+
+  return `| ${name.charAt(0).toUpperCase() + name.slice(1)} | ${total} | ${covered} | ${failed} | ${coverage} |`;
+});
 
 // Intestazione della tabella + badge
 const tableHeader = `
