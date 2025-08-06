@@ -48,17 +48,20 @@ jobs:
       - name: Upload Inventario coverage to Codecov
         uses: codecov/codecov-action@v4
         with:
+          token: ${{ secrets.CODECOV_TOKEN }}
           flags: inventario
           directory: microservizi/magazzino/inventario
           name: inventario
 
+
       - name: Upload Ordini coverage to Codecov
         uses: codecov/codecov-action@v4
         with:
+          token: ${{ secrets.CODECOV_TOKEN }}
           flags: ordini
           directory: microservizi/magazzino/ordini
           name: ordini
-          
+
       - name: Commit updated README
         run: |
           git config --global user.name 'github-actions'
