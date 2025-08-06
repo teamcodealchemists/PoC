@@ -11,10 +11,11 @@
 | Ordini | 0 | 0 | 0 | N/A |
 
 ### Inventario
-[![codecov](https://codecov.io/gh/teamcodealchemists/PoC/branch/main/graph/badge.svg?flag=inventario)](https://codecov.io/gh/teamcodealchemists/PoC)
+![Coverage inventario](https://codecov.io/gh/teamcodealchemists/poc/branch/feature/studioTesting/graph/badge.svg?flag=inventario)
 
 ### Ordini
-[![codecov](https://codecov.io/gh/teamcodealchemists/PoC/branch/main/graph/badge.svg?flag=ordini)](https://codecov.io/gh/teamcodealchemists/PoC)
+![Coverage ordini](https://codecov.io/gh/teamcodealchemists/poc/branch/feature/studioTesting/graph/badge.svg?flag=ordini)
+
 
 ## Descrizione
 
