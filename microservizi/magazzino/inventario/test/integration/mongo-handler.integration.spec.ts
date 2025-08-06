@@ -23,53 +23,75 @@ const product = {
 };
 
 describe('Mongo Save via Service Call', () => {
-    let app: INestApplication;
-    let inventoryModel: Model<InventoryMongo>;
+  // Istanza dell'app NestJS
+  let app: INestApplication;
 
-    beforeAll(async () => {
-      const moduleFixture: TestingModule = await Test.createTestingModule({
-        imports: [
-          MongooseModule.forRoot(process.env.MONGO_URL || 'mongodb://localhost:27017/inventory'),
-          MongooseModule.forFeature([{ name: InventoryMongo.name, schema: InventorySchema }]),
-        ],
-    providers: [
-      InventoryHandlerService,
-      {
-        provide: 'InventoryRepository',
-        useClass: InventoryRepositoryMongo,
-      },
-      {
-        provide: 'NATS_SERVICE',
-        useValue: {
-          emit: jest.fn(),
-          send: jest.fn(),
-          connect: jest.fn(),
-          close: jest.fn(),
+  // Model Mongo per accedere direttamente ai dati (verifica post-salvataggio)
+  let inventoryModel: Model<InventoryMongo>;
+
+  beforeAll(async () => {
+    const moduleFixture: TestingModule = await Test.createTestingModule({
+      imports: [
+        MongooseModule.forRoot(process.env.MONGO_URL || 'mongodb://localhost:27017/inventory'),
+
+        // Registra schema Mongo `InventoryMongo` per usarlo come Model
+        MongooseModule.forFeature([
+          { name: InventoryMongo.name, schema: InventorySchema },
+        ]),
+      ],
+      providers: [
+        // Iniettiamo il vero service che contiene la logica applicativa
+        InventoryHandlerService,
+
+        // Usiamo la vera implementazione Mongo del repository
+        {
+          provide: 'InventoryRepository',
+          useClass: InventoryRepositoryMongo,
         },
-      },
-    ],
 
-      }).compile();
+        // NATS è iniettato come mock, per non dipendere dal broker nei test
+        {
+          provide: 'NATS_SERVICE',
+          useValue: {
+            emit: jest.fn(),
+            send: jest.fn(),
+            connect: jest.fn(),
+            close: jest.fn(),
+          },
+        },
+      ],
+    }).compile();
 
-      app = moduleFixture.createNestApplication();
-      await app.init();
+    // Crea l'app NestJS
+    app = moduleFixture.createNestApplication();
 
-      inventoryModel = moduleFixture.get<Model<InventoryMongo>>(getModelToken(InventoryMongo.name));
-    });
+    // Inizializza i moduli e il sistema di iniezione delle dipendenze
+    await app.init();
 
-    afterEach(async () => {
-      await inventoryModel.deleteMany({});
-    });
-
-    afterAll(async () => {
-      await app.close();
-    });
-
-    it('dovrebbe salvare un prodotto direttamente su Mongo (senza NATS)', async () => {
-      await inventoryModel.create(product);
-
-      const saved = await inventoryModel.findOne({ id: 123 }).lean();
-      expect(saved).toBeDefined();
-      expect(saved?.name).toBe('TestProdotto');
-    });
+    // Otteniamo il model Mongo per verificare i dati salvati
+    inventoryModel = moduleFixture.get<Model<InventoryMongo>>(
+      getModelToken(InventoryMongo.name)
+    );
   });
+
+  // Dopo ogni test, ripuliamo il database per evitare dati residui
+  afterEach(async () => {
+    await inventoryModel.deleteMany({});
+  });
+
+  // Dopo tutti i test, chiudiamo l'applicazione
+  afterAll(async () => {
+    await app.close();
+  });
+
+  // Test: salva un prodotto direttamente su Mongo, passando per il service (mockando NATS)
+  it('dovrebbe salvare un prodotto direttamente su Mongo (senza NATS)', async () => {
+    // Qui stai **bypassando il service**, ma il contesto è pronto: potresti anche usarlo
+    await inventoryModel.create(product);
+
+    // Verifica che il prodotto sia stato salvato
+    const saved = await inventoryModel.findOne({ id: 123 }).lean();
+    expect(saved).toBeDefined();
+    expect(saved?.name).toBe('TestProdotto');
+  });
+});

@@ -45,15 +45,20 @@ jobs:
         working-directory: microservizi
         run: npm run test:cov
 
-      - name: Upload coverage to Codecov
+      - name: Upload Inventario coverage to Codecov
         uses: codecov/codecov-action@v4
         with:
-          flags: monorepo
+          flags: inventario
+          directory: microservizi/magazzino/inventario
+          name: inventario
 
-      - name: Update README test table
-        working-directory: .
-        run: node scripts/update-testdata.js
-
+      - name: Upload Ordini coverage to Codecov
+        uses: codecov/codecov-action@v4
+        with:
+          flags: ordini
+          directory: microservizi/magazzino/ordini
+          name: ordini
+          
       - name: Commit updated README
         run: |
           git config --global user.name 'github-actions'

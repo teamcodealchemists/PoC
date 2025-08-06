@@ -8,7 +8,12 @@
 |---------------|--------------|---------|---------|----------|
 | Inventario | 403 | 80 | 323 | 19.9% |
 | Ordini | 0 | 0 | 0 | N/A |
-Badge Codecov: [![codecov](https://codecov.io/gh/teamcodealchemists/PoC/branch/main/graph/badge.svg)](https://codecov.io/gh/teamcodealchemists/PoC)
+
+### Inventario
+[![codecov](https://codecov.io/gh/teamcodealchemists/PoC/branch/main/graph/badge.svg?flag=inventario)](https://codecov.io/gh/teamcodealchemists/PoC)
+
+### Ordini
+[![codecov](https://codecov.io/gh/teamcodealchemists/PoC/branch/main/graph/badge.svg?flag=ordini)](https://codecov.io/gh/teamcodealchemists/PoC)
 
 ## Descrizione
 

@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<coverage generated="1754301308698" clover="3.2.0">
-  <project timestamp="1754301308698" name="All files">
+<coverage generated="1754329668418" clover="3.2.0">
+  <project timestamp="1754329668418" name="All files">
     <metrics statements="403" coveredstatements="80" conditionals="413" coveredconditionals="29" methods="108" coveredmethods="17" elements="924" coveredelements="126" complexity="0" loc="403" ncloc="403" packages="11" files="22" classes="22"/>
     <package name="coverage.lcov-report">
       <metrics statements="120" coveredstatements="0" conditionals="329" coveredconditionals="0" methods="54" coveredmethods="0"/>
@@ -354,15 +354,15 @@
       <metrics statements="9" coveredstatements="9" conditionals="0" coveredconditionals="0" methods="0" coveredmethods="0"/>
       <file name="inventory.schema.ts" path="C:\Users\alex shu\Desktop\myThings\Project\Uni\PoC\microservizi\magazzino\inventario\src\infrastructure\schemas\inventory.schema.ts">
         <metrics statements="9" coveredstatements="9" conditionals="0" coveredconditionals="0" methods="0" coveredmethods="0"/>
-        <line num="1" count="2" type="stmt"/>
-        <line num="7" count="2" type="stmt"/>
-        <line num="9" count="2" type="stmt"/>
-        <line num="12" count="2" type="stmt"/>
-        <line num="15" count="2" type="stmt"/>
-        <line num="18" count="2" type="stmt"/>
-        <line num="21" count="2" type="stmt"/>
-        <line num="24" count="2" type="stmt"/>
-        <line num="27" count="2" type="stmt"/>
+        <line num="1" count="3" type="stmt"/>
+        <line num="7" count="3" type="stmt"/>
+        <line num="9" count="3" type="stmt"/>
+        <line num="12" count="3" type="stmt"/>
+        <line num="15" count="3" type="stmt"/>
+        <line num="18" count="3" type="stmt"/>
+        <line num="21" count="3" type="stmt"/>
+        <line num="24" count="3" type="stmt"/>
+        <line num="27" count="3" type="stmt"/>
       </file>
     </package>
     <package name="src.interfaces.http">
