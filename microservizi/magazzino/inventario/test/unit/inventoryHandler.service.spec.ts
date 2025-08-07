@@ -61,7 +61,7 @@ describe('InventoryHandlerService', () => {
     });
   });
 
-  // ✅ removeProduct
+  //removeProduct
   describe('removeProduct()', () => {
     it('dovrebbe rimuovere il prodotto se esiste e quantità è 0', async () => {
       const product = {
@@ -122,7 +122,7 @@ describe('InventoryHandlerService', () => {
     });
   });
 
-  // ✅ findProductById
+  // findProductById
   describe('findProductById()', () => {
     it('dovrebbe restituire il prodotto se esistente', async () => {
       const product = new ConcreteProduct(1, 'Prodotto', 10, 5, 1, 10);
@@ -137,7 +137,7 @@ describe('InventoryHandlerService', () => {
     });
   });
 
-  // ✅ getInventory
+  // getInventory
   describe('getInventory()', () => {
     it('dovrebbe restituire tutti i prodotti', async () => {
       const list = [
@@ -150,7 +150,7 @@ describe('InventoryHandlerService', () => {
     });
   });
 
-  // ✅ getTotal
+  // getTotal
   describe('getTotal()', () => {
     it('dovrebbe sommare le quantità di tutti i prodotti', async () => {
       const list = [
