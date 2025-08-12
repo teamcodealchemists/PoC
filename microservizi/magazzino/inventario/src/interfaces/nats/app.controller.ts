@@ -31,14 +31,6 @@ export class AppController {
 
   // curl http://localhost:8081/api/example/model
 
-  // nats request ilovenats '{\"data\":\"hello\",\"id\":\"123\"}'
-
-  @MessagePattern('ilovenats')
-  async handleTestMessage(@Payload() data: any): Promise<any> {
-    console.log('Received NATS message:', data);
-    return `Hello from NATS! You sent: ${data}`;
-  }
-
 
   // ==========================================
   // TEST RESGATE FUNCTIONS
@@ -64,6 +56,52 @@ export class AppController {
 
     console.log('Sending response:', response);
     return Promise.resolve(response);
+  }
+
+  /** 
+   * Handles test post request to add item
+   */
+
+  @MessagePattern('call.warehouses.item.add')
+  async addItem(@Payload() data: any): Promise<any> {
+    try {
+      console.log('Received NATS message for: call.warehouses.item.add');
+      console.log('Data:', data.id);
+
+      // Qui puoi aggiungere la logica per aggiungere l'item usando inventoryHandler se necessario
+
+      return ({
+        resource: {
+          rid : `warehouse.${process.env.WAREHOUSE_ID}.item.${data.id}`
+        }
+      });
+    } catch (error) {
+      return {
+        error: {
+          code: "system.error",
+          message: error.message
+        }
+      };
+    }
+  }
+
+  @MessagePattern(`get.warehouse.${process.env.WAREHOUSE_ID}.item.*`) 
+  async getItem(@Ctx() context: NatsContext) : Promise<any> {
+    const itemIdStr = context.getSubject().split('.').pop() ?? null;
+    console.log('ID received from NATS:', itemIdStr);
+
+    const itemIdDto: IdDto = {
+      id: Number(itemIdStr)
+    };
+
+    const model = await this.inventoryHandler.findProductById(itemIdDto);
+
+    return Promise.resolve({
+      result: {
+          model
+      }
+    });
+
   }
 
   /**
