@@ -62,7 +62,7 @@ export class AppController {
    * Handles test post request to add item
    */
 
-  @MessagePattern('call.warehouses.item.add')
+  @MessagePattern(`call.warehouse.${process.env.WAREHOUSE_ID}.item.add`)
   async addItem(@Payload() data: any): Promise<any> {
     try {
       console.log('Received NATS message for: call.warehouses.item.add');
