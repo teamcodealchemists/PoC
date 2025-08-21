@@ -81,7 +81,7 @@ services:
     image: resgateio/resgate
     container_name: resgate
     ports:
-      - "8081:8080"
+      - "8080:8080"
     depends_on:
       - nats
     #volumes:
@@ -90,28 +90,29 @@ services:
       - "-n"
       - "nats://nats:4222"
       - "-DV"
+      - "--headauth=jwt.HeaderAuth"
     networks:
       - net-magazzino
     
 
-  api-gateway:
-    container_name: api-gateway
-    build: 
-      context: ./microservizi/api_gateway
-      dockerfile: Dockerfile
-    ports:
-      - "8080:8080" # Gateway API
-    environment:
-      - PORT=8080
-      - NATS_URL=nats://nats:4222
-    networks:
-      - net-magazzino
-    volumes:
-      - ./microservizi/api_gateway:/usr/src/app/src
-    depends_on:
-      - inventario
-      - ordini
-      - nats
+#  api-gateway:
+#    container_name: api-gateway
+#    build: 
+#      context: ./microservizi/api_gateway
+#      dockerfile: Dockerfile
+#    ports:
+#      - "8080:8080" # Gateway API
+#    environment:
+#      - PORT=8080
+#      - NATS_URL=nats://nats:4222
+#    networks:
+#      - net-magazzino
+#    volumes:
+#      - ./microservizi/api_gateway:/usr/src/app/src
+#    depends_on:
+#      - inventario
+#      - ordini
+#      - nats
 
 networks:
   net-magazzino:

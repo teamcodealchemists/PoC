@@ -4,15 +4,19 @@ import {
   ValidationPipe,
   NotFoundException,
   HttpException,
-  HttpStatus
+  HttpStatus,
+  Request,
+  Body,
+  Inject
 } from '@nestjs/common';
-import { MessagePattern, Payload, EventPattern, Ctx, NatsContext } from '@nestjs/microservices';
+import { MessagePattern, Payload, EventPattern, Ctx, NatsContext, ClientsModule, ClientProxy } from '@nestjs/microservices';
 import { ConfigService } from '@nestjs/config';
 
 import { InventoryHandlerService } from 'src/application/inventoryHandler.service';
 import { AddProductDto } from './dto/addProduct.dto';
 import { IdDto } from './dto/id.dto';
 import { EditProductDto } from './dto/editProduct.dto';
+import * as jwt from 'jsonwebtoken';
 
 
 const conf = new ConfigService();
@@ -20,8 +24,9 @@ const conf = new ConfigService();
 @Controller()
 export class AppController {
   constructor(
-    private readonly inventoryHandler: InventoryHandlerService
-  ) {}
+    private readonly inventoryHandler: InventoryHandlerService,
+    @Inject('NATS_SERVICE') private readonly natsClient: ClientProxy,
+  ) { }
 
   // PROBLEMA: NestJS is aspetta un campo data e id nell'oggetto di richiesta message pattern NATS, ma il bro resgate non lo invia.
 
@@ -40,12 +45,12 @@ export class AppController {
    * Handles get request for the example model.
    * Uses @MessagePattern for request-response communication.
    */
-  
+
   @MessagePattern('get.example.model')
-  async getExampleModel(@Payload() data: any): Promise<{ result: { model: {message: any} } }> {
+  async getExampleModel(@Payload() data: any): Promise<{ result: { model: { message: any } } }> {
     console.log('Received NATS message for: get.example.model');
     console.log('Data:', data);
-    
+
     const response = {
       result: {
         model: {
@@ -62,17 +67,21 @@ export class AppController {
    * Handles test post request to add item
    */
 
-  @MessagePattern(`call.warehouse.${process.env.WAREHOUSE_ID}.item.add`)
-  async addItem(@Payload() data: any): Promise<any> {
+  @MessagePattern(`call.warehouse.${process.env.WAREHOUSE_ID}.items.new`)
+  async addItem(@Body() data: any): Promise<any> {
     try {
-      console.log('Received NATS message for: call.warehouses.item.add');
-      console.log('Data:', data.id);
+      console.log('Received NATS message for: call.warehouse.1.item.new');
+      const parsedData = JSON.parse(data);
+      console.log("Data: ", parsedData.params);
 
       // Qui puoi aggiungere la logica per aggiungere l'item usando inventoryHandler se necessario
+      let newProduct: AddProductDto = parsedData.params;
+      await this.inventoryHandler.addProduct(newProduct);
 
       return ({
-        resource: {
-          rid : `warehouse.${process.env.WAREHOUSE_ID}.item.${data.id}`
+        resource:
+        {
+          rid: `warehouse.${process.env.WAREHOUSE_ID}.item.${parsedData.params.id}`
         }
       });
     } catch (error) {
@@ -85,8 +94,8 @@ export class AppController {
     }
   }
 
-  @MessagePattern(`get.warehouse.${process.env.WAREHOUSE_ID}.item.*`) 
-  async getItem(@Ctx() context: NatsContext) : Promise<any> {
+  @MessagePattern(`get.warehouse.${process.env.WAREHOUSE_ID}.item.*`)
+  async getItem(@Ctx() context: NatsContext): Promise<any> {
     const itemIdStr = context.getSubject().split('.').pop() ?? null;
     console.log('ID received from NATS:', itemIdStr);
 
@@ -98,7 +107,7 @@ export class AppController {
 
     return Promise.resolve({
       result: {
-          model
+        model
       }
     });
 
@@ -108,13 +117,83 @@ export class AppController {
    * Handles access request for the example model.
    * Uses @MessagePattern for request-response communication.
    */
-  @MessagePattern('access.>')
-  async accessExampleModel(@Payload() data: any): Promise<{ result: { get: boolean } }> {
-    console.log('Received NATS message for: access.example.model');
-    console.log('Data:', data);
-    return Promise.resolve({ result: { get: true, call:"*" } });
+  @MessagePattern('access.warehouse.>')
+  async accessExampleModel(@Body() data): Promise<{ result: { get: boolean, call: string } }> {
+    // The data is already a parsed object, no need for JSON.parse
+    console.log('Received NATS message for: access.warehouse.>', JSON.parse(data));
+    if (data && data.token) {
+      return Promise.resolve({ result: { get: true, call: "*" } });
+    }
+
+    return Promise.resolve({ result: { get: false, call: "" } });
   }
 
+  @MessagePattern('auth.jwt.HeaderAuth')
+  async jwtHeaderAuth(@Body() data: any): Promise<any> {
+    try {
+
+      const { cid } = JSON.parse(data);
+      console.log('Received NATS message for: auth.jwt.HeaderAuth with cid:', cid);
+      
+      // Prepare the payload in the format resgate expects
+
+      this.natsClient.emit(`conn.${cid}.token`, { "token": { "loggedIn": "true" } });
+
+      return Promise.resolve(this.natsClient.emit(data.reply, JSON.stringify({
+          "result": null
+        })));
+
+    } catch (error) {
+      return { result: { token: null } };
+    }
+  }
+
+
+  //@MessagePattern('access.auth.>')
+  //async accessAuth(@Body() data: any): Promise<{ result: { get: boolean, call: string } }> {
+  //  return Promise.resolve({ result: { get: true, call: "*" } });
+  //}
+
+  @MessagePattern('access.jwt')
+  async accessJwt(@Body() data: any): Promise<{ result: { get: boolean, call: string } }> {
+    return Promise.resolve({ result: { get: true, call: "*" } });
+  }
+
+
+  @MessagePattern('call.jwt.login')
+  async authJwtLogin(@Body() data: any): Promise<any> {
+    try {
+      const { params } = JSON.parse(data);
+
+      // Sostituisci questa logica con la tua reale autenticazione
+      if (params && params.username === 'admin' && params.password === 'pass') {
+        const payload = { username: params.username };
+        const secret = conf.get<string>('JWT_SECRET') || 'defaultSecret';
+        const token = jwt.sign(payload, secret, { expiresIn: '1h' });
+
+        // Restituisce il token direttamente nel corpo della risposta
+        return {
+          result: {
+            token: token
+          }
+        };
+      } else {
+        return {
+          error: {
+            code: 'auth.invalidCredentials',
+            message: 'Invalid username or password',
+          },
+        };
+      }
+    } catch (error) {
+      return {
+        error: {
+          code: 'auth.error',
+          message: error.message,
+        },
+      };
+    }
+  }
 
 
   // ==========================================
@@ -137,7 +216,7 @@ export class AppController {
    * Throws 404 if not found.
    */
   @MessagePattern(`get.warehouses.${process.env.WAREHOUSE_ID}`)
-  async getProductById(@Payload("productsId") id : IdDto): Promise<any> {
+  async getProductById(@Payload("productsId") id: IdDto): Promise<any> {
     console.log(`Searching for product with ID: ${id.id} in warehouse ${process.env.WAREHOUSE_ID}`);
     const productString = await this.inventoryHandler.findProductById(id);
     console.log('Product found:', productString);
@@ -178,7 +257,7 @@ export class AppController {
   //// ==========================================
   //// WRITE FUNCTIONS
   //// ==========================================
-//
+  //
   ///**
   // * Add a new product to the warehouse.
   // * Returns error if the product already exists.
@@ -193,7 +272,7 @@ export class AppController {
   //    return { error: error.message, status: 'failed' };
   //  }
   //}
-//
+  //
   ///**
   // * Remove a product from the warehouse by ID.
   // */
@@ -211,7 +290,7 @@ export class AppController {
   //    return { message: error.message, success:false, code:400};
   //  }
   //}
-//
+  //
   ///**
   // * Edit an existing product in the warehouse.
   // */
