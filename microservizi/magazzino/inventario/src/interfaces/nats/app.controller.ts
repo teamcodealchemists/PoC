@@ -118,30 +118,27 @@ export class AppController {
    * Uses @MessagePattern for request-response communication.
    */
   @MessagePattern('access.warehouse.>')
-  async accessExampleModel(@Body() data): Promise<{ result: { get: boolean, call: string } }> {
+  async accessExampleModel(@Body() data ): Promise<{ result: { get: boolean, call: string } }> {
     // The data is already a parsed object, no need for JSON.parse
-    console.log('Received NATS message for: access.warehouse.>', JSON.parse(data));
-    if (data && data.token) {
+    const { token } = JSON.parse(data);
+    if (token && token.isLoggedIn) {
       return Promise.resolve({ result: { get: true, call: "*" } });
     }
-
     return Promise.resolve({ result: { get: false, call: "" } });
   }
 
   @MessagePattern('auth.jwt.HeaderAuth')
   async jwtHeaderAuth(@Body() data: any): Promise<any> {
     try {
-
+      console.log('Received NATS message for: auth.jwt.HeaderAuth: ', JSON.parse(data));
       const { cid } = JSON.parse(data);
       console.log('Received NATS message for: auth.jwt.HeaderAuth with cid:', cid);
       
       // Prepare the payload in the format resgate expects
 
-      this.natsClient.emit(`conn.${cid}.token`, { "token": { "loggedIn": "true" } });
+      this.natsClient.emit(`conn.${cid}.token`, { token: { isLoggedIn: true } });
 
-      return Promise.resolve(this.natsClient.emit(data.reply, JSON.stringify({
-          "result": null
-        })));
+      return Promise.resolve({ result: null });
 
     } catch (error) {
       return { result: { token: null } };
