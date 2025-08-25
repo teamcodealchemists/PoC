@@ -127,23 +127,23 @@ export class AppController {
     return Promise.resolve({ result: { get: false, call: "" } });
   }
 
-  @MessagePattern('auth.jwt.HeaderAuth')
-  async jwtHeaderAuth(@Body() data: any): Promise<any> {
-    try {
-      console.log('Received NATS message for: auth.jwt.HeaderAuth: ', JSON.parse(data));
-      const { cid } = JSON.parse(data);
-      console.log('Received NATS message for: auth.jwt.HeaderAuth with cid:', cid);
+  // @MessagePattern('auth.jwt.HeaderAuth')
+  // async jwtHeaderAuth(@Body() data: any): Promise<any> {
+  //   try {
+  //     console.log('Received NATS message for: auth.jwt.HeaderAuth: ', JSON.parse(data));
+  //     const { cid } = JSON.parse(data);
+  //     console.log('Received NATS message for: auth.jwt.HeaderAuth with cid:', cid);
       
-      // Prepare the payload in the format resgate expects
+  //     // Prepare the payload in the format resgate expects
 
-      this.natsClient.emit(`conn.${cid}.token`, { token: { isLoggedIn: true } });
+  //     this.natsClient.emit(`conn.${cid}.token`, { token: { isLoggedIn: true } });
 
-      return Promise.resolve({ result: null });
+  //     return Promise.resolve({ result: null });
 
-    } catch (error) {
-      return { result: { token: null } };
-    }
-  }
+  //   } catch (error) {
+  //     return { result: { token: null } };
+  //   }
+  // }
 
 
   //@MessagePattern('access.auth.>')
@@ -164,23 +164,23 @@ export class AppController {
 
       // Sostituisci questa logica con la tua reale autenticazione
       if (params && params.username === 'admin' && params.password === 'pass') {
-        const payload = { username: params.username };
-        const secret = conf.get<string>('JWT_SECRET') || 'defaultSecret';
-        const token = jwt.sign(payload, secret, { expiresIn: '1h' });
+        const { cid } = JSON.parse(data);
+        
+        // Prepare the payload in the format resgate expects
+        
+        this.natsClient.emit(`conn.${cid}.token`, { token: { isLoggedIn: true } });
 
         // Restituisce il token direttamente nel corpo della risposta
-        return {
-          result: {
-            token: token
-          }
-        };
+        return Promise.resolve({
+          result: "Login Successful"
+        });
       } else {
-        return {
+        return Promise.resolve({
           error: {
             code: 'auth.invalidCredentials',
             message: 'Invalid username or password',
           },
-        };
+        });
       }
     } catch (error) {
       return {

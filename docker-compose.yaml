@@ -90,7 +90,7 @@ services:
       - "-n"
       - "nats://nats:4222"
       - "-DV"
-      - "--headauth=jwt.HeaderAuth"
+    #  - "--headauth=jwt.HeaderAuth"
     networks:
       - net-magazzino
     
